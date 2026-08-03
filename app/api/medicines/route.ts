@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
-import connectMongoose from "@/lib/db/mongoose";
+import connectMongoose from "@/lib/db";
 import { Medicine } from "@/models/Medicine";
 import { auth } from "@/auth";
 

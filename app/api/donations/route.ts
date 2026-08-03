@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectMongoose from "@/lib/db/mongoose";
-import { Medicine, Inventory } from "@/models";
+import connectMongoose from "@/lib/db";
+import { Medicine } from "@/models/Medicine";
+import { Inventory } from "@/models/Inventory";
 
 export const runtime = "nodejs";
 

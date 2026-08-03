@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import connectMongoose from "@/lib/db/mongoose";
+import connectMongoose from "@/lib/db";
 import { extractMedicineInfo } from "@/lib/extractor";
 import { validateMedicineDetails } from "@/lib/validator";
 

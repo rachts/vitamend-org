@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import connectMongoose from "@/lib/db/mongoose";
-import { Inventory } from "@/models";
+import connectMongoose from "@/lib/db";
+import { Inventory } from "@/models/Inventory";
 import { TrustBadge } from "@/components/trust-badges";
 import {
   Package,

@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import connectMongoose from "@/lib/db/mongoose";
-import { User } from "@/models";
+import connectMongoose from "@/lib/db";
+import { User } from "@/models/User";
 
 function normalizeUserRole(role: string): string {
   const roleMap: Record<string, string> = {

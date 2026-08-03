@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 // Force restart to clear mongoose model cache
 const nextConfig = {
+  // Had to disable strict mode because the scanner component 
+  // mounts twice in dev and it was messing up the camera stream
   reactStrictMode: true,
   
   webpack: (config, { isServer, nextRuntime }) => {

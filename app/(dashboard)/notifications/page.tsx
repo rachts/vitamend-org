@@ -1,5 +1,5 @@
 import { Notification } from "@/models/Notification";
-import connectMongoose from "@/lib/db/mongoose";
+import connectMongoose from "@/lib/db";
 import { auth } from "@/auth";
 import { Bell, CheckCircle } from "lucide-react";
 import { redirect } from "next/navigation";

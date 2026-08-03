@@ -3,10 +3,10 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
-import { extractTextFromBuffer, VisionServiceError } from "@/lib/vision";
 import { extractMedicineInfo } from "@/lib/extractor";
 import { validateMedicineDetails } from "@/lib/validator";
 import { getDemoOCRResponse } from "@/lib/services/ocr-demo";
+import { scanMedicineLabel } from "@/lib/ai/gemini-ocr";
 import { OCRApiResponse, OCRErrorCode } from "@/types/medicine";
 
 const limiter = rateLimit(10, 1);
@@ -87,24 +87,68 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Step 1: Send image buffer to Google Gemini OCR Engine
-    const visionResult = await extractTextFromBuffer(buffer, file.type || "image/jpeg");
+    // Step 1: Send image buffer to Google Gemini OCR Engine with timeout
+    const ocrPromise = scanMedicineLabel(buffer, file.type || "image/jpeg");
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("OCR_TIMEOUT")), 15000)
+    );
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const visionResult: any = await Promise.race([ocrPromise, timeoutPromise]);
+    
+    // Markdown-parsing logic for Gemini responses (if it returns markdown instead of JSON)
+    if (visionResult.rawText) {
+       visionResult.rawText = visionResult.rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+    }
+
+    if (!visionResult.rawText || visionResult.rawText.trim().length === 0) {
+      const errResponse: OCRApiResponse = {
+        success: false,
+        error: "No text detected on the medicine label. Please upload a clear photo of the medicine packaging or label.",
+        code: "NO_TEXT_DETECTED",
+        processingTimeMs: Date.now() - startTime,
+      };
+      return NextResponse.json(errResponse, { status: 422 });
+    }
+
+    const confidencePercentage = typeof visionResult.confidence === "number" ? visionResult.confidence : 85;
+    const isBlurred = confidencePercentage < 60;
+
+    if (confidencePercentage < 40) {
+      const errResponse: OCRApiResponse = {
+        success: false,
+        error: "Image is too blurred to read accurately.",
+        code: "BLURRED_IMAGE",
+        processingTimeMs: Date.now() - startTime,
+      };
+      return NextResponse.json(errResponse, { status: 422 });
+    }
+
+    if (confidencePercentage < 50) {
+      const errResponse: OCRApiResponse = {
+        success: false,
+        error: "Low OCR confidence. Please retake photo.",
+        code: "LOW_CONFIDENCE",
+        processingTimeMs: Date.now() - startTime,
+      };
+      return NextResponse.json(errResponse, { status: 422 });
+    }
 
     // Step 2: Extract structural medicine details from OCR text
-    const extracted = extractMedicineInfo(visionResult.text);
+    const extracted = extractMedicineInfo(visionResult.rawText);
 
     // Step 3: Validate extracted medicine details against regulatory rules
     const validation = validateMedicineDetails(extracted);
 
-    if (visionResult.confidence < 80) {
+    if (confidencePercentage < 80) {
       validation.warnings.push({
         field: "confidence",
-        message: `OCR detection confidence is below 80% (${visionResult.confidence}%). Please carefully review and confirm all numbers against the physical box or label.`,
+        message: `OCR detection confidence is below 80% (${confidencePercentage}%). Please carefully review and confirm all numbers against the physical box or label.`,
         severity: "warning",
       });
     }
 
-    if (visionResult.isBlurred) {
+    if (isBlurred) {
       validation.warnings.push({
         field: "image",
         message: "Image quality appears slightly degraded or blurry. Consider taking a clearer photo in stable lighting or check characters manually.",
@@ -113,15 +157,15 @@ export async function POST(req: NextRequest) {
     }
 
     const processingTimeMs = Date.now() - startTime;
-    logger.info(`OCR completed successfully in ${processingTimeMs}ms (Confidence: ${visionResult.confidence}%, Valid: ${validation.isValid})`);
+    logger.info(`OCR completed successfully in ${processingTimeMs}ms (Confidence: ${confidencePercentage}%, Valid: ${validation.isValid})`);
 
     // Step 4: Construct standard response with backward-compatibility properties
     const responseData: OCRApiResponse = {
       success: true,
       extracted,
       validation,
-      confidence: visionResult.confidence,
-      rawText: visionResult.text,
+      confidence: confidencePercentage,
+      rawText: visionResult.rawText,
       processingTimeMs,
       // Backward compatibility fields for legacy clients
       expiry: extracted.expiryDate,
@@ -129,10 +173,10 @@ export async function POST(req: NextRequest) {
       medicine_name: extracted.medicineName,
       qr_expiry: null,
       expired: !validation.expiryValid,
-      tampered: visionResult.isBlurred || visionResult.confidence < 60,
-      needs_review: !validation.isValid || visionResult.confidence < 80,
+      tampered: isBlurred || confidencePercentage < 60,
+      needs_review: !validation.isValid || confidencePercentage < 80,
       mismatch: false,
-      raw_text: visionResult.text,
+      raw_text: visionResult.rawText,
     };
 
     return NextResponse.json(responseData, { status: 200 });
@@ -142,17 +186,14 @@ export async function POST(req: NextRequest) {
     const message = error instanceof Error ? (error as Error).message : "Unknown error";
     logger.error("OCR Route Processing Error:", message);
 
-    if (error instanceof VisionServiceError) {
-      const statusCode = 
-        error.code === "NO_TEXT_DETECTED" || error.code === "BLURRED_IMAGE" || error.code === "LOW_CONFIDENCE" ? 422 : 500;
-      
+    if (message === "OCR_TIMEOUT") {
       const errResponse: OCRApiResponse = {
         success: false,
-        error: message,
-        code: error.code as OCRErrorCode,
+        error: "OCR scanning timed out. The label might be too complex or the service is busy.",
+        code: "API_ERROR",
         processingTimeMs,
       };
-      return NextResponse.json(errResponse, { status: statusCode });
+      return NextResponse.json(errResponse, { status: 504 });
     }
 
     const errResponse: OCRApiResponse = {

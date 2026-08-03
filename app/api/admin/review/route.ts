@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectMongoose from "@/lib/db/mongoose";
-import { Medicine, VerificationLog, Inventory, AILearningDataset } from "@/models";
+import connectMongoose from "@/lib/db";
+import { Medicine } from "@/models/Medicine";
+import { VerificationLog } from "@/models/VerificationLog";
+import { Inventory } from "@/models/Inventory";
+import { AILearningDataset } from "@/models/AILearningDataset";
 import { sendNotification } from "@/lib/notifications";
 
 export async function POST(req: Request) {

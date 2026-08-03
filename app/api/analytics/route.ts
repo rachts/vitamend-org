@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectMongoose from "@/lib/db/mongoose";
-import { Medicine, Inventory, Distribution, VerificationLog } from "@/models";
+import connectMongoose from "@/lib/db";
+import { Medicine } from "@/models/Medicine";
+import { Inventory } from "@/models/Inventory";
+import { Distribution } from "@/models/Distribution";
+import { VerificationLog } from "@/models/VerificationLog";
 
 export async function GET(_req: Request) {
   try {

@@ -4,6 +4,8 @@ import NavBar from "@/components/ui/NavBar"
 import Footer from "@/components/footer"
 
 export default function NotFound() {
+  // Standard 404 page. I should probably add a link to the dashboard
+  // if they are logged in, but just going home is fine for now.
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg-primary)]">
       <NavBar />

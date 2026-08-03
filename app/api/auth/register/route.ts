@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectMongoose from "@/lib/db/mongoose";
-import { User } from "@/models";
+import connectMongoose from "@/lib/db";
+import { User } from "@/models/User";
 
 function normalizeUserRole(role: string): string {
   const roleMap: Record<string, string> = {

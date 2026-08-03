@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectMongoose from "@/lib/db/mongoose";
-import { Inventory } from "@/models";
+import connectMongoose from "@/lib/db";
+import { Inventory } from "@/models/Inventory";
 
 interface RawInventoryItem {
   _id: unknown;

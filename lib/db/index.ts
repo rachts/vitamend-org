@@ -1,46 +1,44 @@
+import mongoose from "mongoose";
 import "server-only";
-import { DB_PROVIDER, type DatabaseProvider } from "./config";
-import type { DatabaseAdapter, InitResult } from "./types";
 
-// Re-export types for convenience
-export * from "./types";
-export { DB_PROVIDER } from "./config";
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// Lazy load adapters to avoid importing all providers
-async function loadAdapter(provider: DatabaseProvider): Promise<DatabaseAdapter> {
-  switch (provider) {
-    case "mongodb": {
-      const { mongodbAdapter } = await import("./adapters/mongodb");
-      return mongodbAdapter;
-    }
-    default:
-      throw new Error(`Unknown database provider: ${provider}`);
-  }
+declare global {
+  var __mongooseCache:
+    | { conn: typeof import("mongoose") | null; promise: Promise<typeof import("mongoose")> | null }
+    | undefined;
 }
 
-// Cached adapter instance
-let cachedAdapter: DatabaseAdapter | null = null;
-let cachedProvider: DatabaseProvider | null = null;
+const cached = global.__mongooseCache ?? (global.__mongooseCache = { conn: null, promise: null });
 
-export async function getDb(): Promise<DatabaseAdapter> {
-  if (cachedAdapter && cachedProvider === DB_PROVIDER) {
-    return cachedAdapter;
+export async function connectMongoose() {
+  if (!MONGODB_URI) {
+    throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
   }
 
-  cachedAdapter = await loadAdapter(DB_PROVIDER);
-  cachedProvider = DB_PROVIDER;
-  return cachedAdapter;
-}
-
-// Synchronous getter for cached adapter
-export function getDbSync(): DatabaseAdapter {
-  if (!cachedAdapter) {
-    throw new Error("Database not initialized. Call getDb() first.");
+  if (cached.conn) {
+    return cached.conn;
   }
-  return cachedAdapter;
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+      dbName: process.env.MONGODB_DB_NAME || "vitamend",
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => m);
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 }
 
-export async function initializeDatabase(): Promise<InitResult> {
-  const db = await getDb();
-  return db.initDatabase();
-}
+export default connectMongoose;

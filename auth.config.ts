@@ -8,6 +8,7 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        // NextAuth v5 beta requires manual token.role injection — session callback doesn't auto-populate custom fields.
         token.role = (user as { role?: string }).role ?? "donor";
       }
       return token;

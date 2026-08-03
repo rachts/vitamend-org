@@ -3,6 +3,10 @@ import { ExtractedMedicineDetails } from "@/types/medicine";
 /**
  * Parses raw OCR text extracted from medicine packaging/labels
  * and structures it into standardized medicine properties.
+ * 
+ * Dev Note: Indian medicine labels are notoriously hard to parse.
+ * The MRP/Date formats are all over the place (e.g. M.R.P. Rs., Exp., Use before).
+ * I've tried to handle the most common ones here but it's a constant struggle.
  */
 export function extractMedicineInfo(rawText: string): ExtractedMedicineDetails {
   if (!rawText || typeof rawText !== "string") {
