@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Volunteer | Vitamend</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&amp;family=Montserrat:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e2e3e1",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#abb892",
+                        "inverse-on-surface": "#f1f1ef",
+                        "outline": "#76786e",
+                        "tertiary-fixed": "#ffdea7",
+                        "surface-tint": "#576342",
+                        "on-secondary": "#ffffff",
+                        "primary": "#283217",
+                        "surface-dim": "#dadad8",
+                        "primary-fixed-dim": "#bfcca4",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#e7c17d",
+                        "on-primary-fixed": "#151f05",
+                        "inverse-surface": "#2f3130",
+                        "on-secondary-fixed-variant": "#70371f",
+                        "stone": "#C4C1BA",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#d3ae6c",
+                        "on-secondary-container": "#7a3e27",
+                        "linen": "#F2F0E9",
+                        "on-secondary-fixed": "#370d00",
+                        "tertiary-container": "#5b4107",
+                        "secondary-fixed-dim": "#ffb59a",
+                        "inverse-primary": "#bfcca4",
+                        "surface-container": "#eeeeec",
+                        "on-primary-fixed-variant": "#404b2c",
+                        "on-error": "#ffffff",
+                        "ink": "#1A1A18",
+                        "on-surface": "#1a1c1b",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c6c7bb",
+                        "on-surface-variant": "#45483f",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#dbe8bf",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "tertiary": "#402c00",
+                        "surface-container-high": "#e8e8e6",
+                        "surface-variant": "#e2e3e1",
+                        "primary-container": "#3e492b",
+                        "on-tertiary-fixed-variant": "#5c4208",
+                        "on-tertiary-fixed": "#271900",
+                        "secondary-fixed": "#ffdbce",
+                        "secondary-container": "#ffad8f",
+                        "surface-container-low": "#f4f4f2",
+                        "surface-bright": "#f9f9f7",
+                        "secondary": "#8d4d34",
+                        "background": "#f9f9f7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "160px",
+                        "margin-mobile": "24px",
+                        "unit": "4px",
+                        "margin-desktop": "80px",
+                        "gutter-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["EB Garamond", "serif"],
+                        "headline-lg-mobile": ["EB Garamond", "serif"],
+                        "button-text": ["Montserrat", "sans-serif"],
+                        "body-md": ["Montserrat", "sans-serif"],
+                        "body-lg": ["Montserrat", "sans-serif"],
+                        "label-caps": ["Montserrat", "sans-serif"],
+                        "headline-md": ["EB Garamond", "serif"],
+                        "headline-lg": ["EB Garamond", "serif"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["84px", { "lineHeight": "92px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["36px", { "lineHeight": "44px", "fontWeight": "400" }],
+                        "button-text": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "headline-lg": ["48px", { "lineHeight": "56px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .input-concierge {
+            border: none;
+            border-bottom: 1px solid theme('colors.stone');
+            background: transparent;
+            padding: 12px 0;
+            width: 100%;
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            color: theme('colors.primary');
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-concierge:focus {
+            outline: none;
+            border-bottom-color: theme('colors.tertiary-container');
+            box-shadow: none;
+        }
+        
+        .input-concierge::placeholder {
+            color: theme('colors.stone');
+            opacity: 0.7;
+        }
+
+        .smooth-fade {
+            animation: fadeIn 1.2s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col relative selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-stone/30 dark:border-outline-variant/30 transition-all duration-300">
+<div class="flex justify-between items-center w-full px-margin-desktop py-6 max-w-full mx-auto md:px-margin-desktop px-margin-mobile">
+<!-- Brand Logo -->
+<a class="font-headline-md text-headline-md tracking-tighter text-primary dark:text-primary-fixed-dim" href="#">Vitamend</a>
+<!-- Desktop Navigation Links -->
+<div class="hidden md:flex items-center gap-12">
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">Donate</a>
+<a class="font-label-caps text-label-caps text-primary dark:text-primary-fixed-dim border-b border-primary dark:border-primary-fixed-dim pb-1 scale-95 duration-300 ease-in-out" href="#">Volunteer</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">Store</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">Transparency</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">Founders</a>
+</div>
+<!-- Trailing Actions -->
+<div class="hidden md:flex items-center gap-6">
+<button class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors">Logout</button>
+<button class="font-button-text text-button-text bg-primary text-on-primary px-8 py-3 rounded hover:bg-surface-tint transition-colors duration-500 uppercase tracking-widest">Dashboard</button>
+<button class="text-primary hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+</button>
+</div>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</nav>
+<main class="flex-grow flex flex-col smooth-fade">
+<!-- Hero Section -->
+<section class="w-full px-margin-mobile md:px-margin-desktop py-24 md:py-32 flex flex-col items-center justify-center text-center relative overflow-hidden">
+<!-- Abstract background element -->
+<div class="absolute -top-40 -right-40 w-96 h-96 bg-linen rounded-full mix-blend-multiply opacity-50 blur-3xl -z-10"></div>
+<h1 class="font-display-lg text-headline-lg-mobile md:text-display-lg text-primary max-w-4xl leading-tight mb-8">
+                Become a Volunteer
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-16">
+                Your time and dedication can help save lives. Join our global network of care professionals and committed individuals shaping a healthier future.
+            </p>
+<!-- Decorative Line -->
+<div class="w-px h-24 bg-stone mb-16"></div>
+</section>
+<!-- Value Proposition Grid -->
+<section class="w-full px-margin-mobile md:px-margin-desktop pb-section-gap relative">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-0 border-t border-b border-stone relative">
+<!-- Internal vertical dividers for desktop -->
+<div class="hidden md:block absolute top-0 bottom-0 left-1/4 w-px bg-tertiary-container/30"></div>
+<div class="hidden md:block absolute top-0 bottom-0 left-2/4 w-px bg-tertiary-container/30"></div>
+<div class="hidden md:block absolute top-0 bottom-0 left-3/4 w-px bg-tertiary-container/30"></div>
+<div class="p-8 flex flex-col items-start gap-4">
+<span class="material-symbols-outlined text-tertiary-container text-3xl" data-icon="volunteer_activism">volunteer_activism</span>
+<h3 class="font-headline-md text-2xl text-primary mt-4">Make a Difference</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Directly impact communities by providing essential support and care resources.</p>
+</div>
+<div class="p-8 flex flex-col items-start gap-4 md:border-l-0 border-t md:border-t-0 border-stone">
+<span class="material-symbols-outlined text-tertiary-container text-3xl" data-icon="diversity_3">diversity_3</span>
+<h3 class="font-headline-md text-2xl text-primary mt-4">Join a Community</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Connect with like-minded individuals dedicated to holistic health and wellness.</p>
+</div>
+<div class="p-8 flex flex-col items-start gap-4 md:border-l-0 border-t md:border-t-0 border-stone">
+<span class="material-symbols-outlined text-tertiary-container text-3xl" data-icon="schedule">schedule</span>
+<h3 class="font-headline-md text-2xl text-primary mt-4">Flexible Hours</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Contribute your time on a schedule that respects your personal slow-living rhythm.</p>
+</div>
+<div class="p-8 flex flex-col items-start gap-4 md:border-l-0 border-t md:border-t-0 border-stone">
+<span class="material-symbols-outlined text-tertiary-container text-3xl" data-icon="school">school</span>
+<h3 class="font-headline-md text-2xl text-primary mt-4">Gain Experience</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Learn cutting-edge care techniques and architectural approaches to wellness.</p>
+</div>
+</div>
+</section>
+<!-- Application Form Section -->
+<section class="w-full px-margin-mobile md:px-margin-desktop py-16 flex justify-center pb-section-gap">
+<div class="w-full max-w-3xl bg-linen/50 p-12 md:p-24 border border-stone/50 relative">
+<!-- Decorative corner accents -->
+<div class="absolute top-0 left-0 w-4 h-px bg-tertiary-container"></div>
+<div class="absolute top-0 left-0 w-px h-4 bg-tertiary-container"></div>
+<div class="absolute bottom-0 right-0 w-4 h-px bg-tertiary-container"></div>
+<div class="absolute bottom-0 right-0 w-px h-4 bg-tertiary-container"></div>
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-4">The Concierge Application</h2>
+<p class="font-body-md text-on-surface-variant">Please provide your details below. We review every application with deliberate care.</p>
+</div>
+<form class="space-y-12">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-2" for="firstName">First Name</label>
+<input class="input-concierge" id="firstName" name="firstName" placeholder="Jane" type="text"/>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-2" for="lastName">Last Name</label>
+<input class="input-concierge" id="lastName" name="lastName" placeholder="Doe" type="text"/>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-2" for="email">Email Address</label>
+<input class="input-concierge" id="email" name="email" placeholder="jane.doe@example.com" type="email"/>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-2" for="interest">Area of Interest</label>
+<select class="input-concierge appearance-none cursor-pointer" id="interest" name="interest">
+<option disabled="" selected="" value="">Select an area...</option>
+<option value="clinical">Clinical Support</option>
+<option value="community">Community Outreach</option>
+<option value="administrative">Administrative Care</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-2" for="message">Why Vitamend?</label>
+<textarea class="input-concierge resize-none overflow-hidden" id="message" name="message" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" placeholder="Share your philosophy of care..." rows="1"></textarea>
+</div>
+<div class="pt-8">
+<button class="w-full bg-primary text-tertiary-fixed-dim font-button-text text-button-text py-6 uppercase tracking-widest hover:bg-surface-tint transition-colors duration-500" type="submit">
+                            Submit Application
+                        </button>
+</div>
+</form>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-linen dark:bg-inverse-surface border-t border-stone/50 dark:border-outline-variant/50 w-full mt-auto">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter-desktop px-margin-desktop py-section-gap max-w-full mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="md:col-span-4 flex flex-col gap-8">
+<a class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim" href="#">Vitamend</a>
+<p class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim leading-tight">
+                    Redefining the lifecycle of care.
+                </p>
+</div>
+<div class="md:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-8 md:mt-0 mt-12">
+<div class="flex flex-col gap-4">
+<span class="font-label-caps text-label-caps text-stone uppercase tracking-widest">Navigation</span>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-300" href="#">Home</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-300" href="#">Science</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-300" href="#">Pricing</a>
+</div>
+<div class="flex flex-col gap-4">
+<span class="font-label-caps text-label-caps text-stone uppercase tracking-widest">Account</span>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-300" href="#">Login</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-300" href="#">Book a Consultation</a>
+</div>
+</div>
+<div class="md:col-span-12 border-t border-stone/30 mt-16 pt-8 flex justify-between items-center text-sm text-on-surface-variant">
+<p>© Vitamend. Redefining the lifecycle of care.</p>
+<button class="hover:opacity-70 transition-opacity duration-500 font-label-caps text-label-caps uppercase tracking-widest" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                    Back to top
+                </button>
+</div>
+</div>
+</footer>
+</body></html>
