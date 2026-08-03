@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { extractMedicineInfo } from "@/lib/extractor";
 import { validateMedicineDetails } from "@/lib/validator";
-import { getDemoOCRResponse } from "@/lib/services/ocr-demo";
 import { scanMedicineLabel } from "@/lib/ai/gemini-ocr";
 import { OCRApiResponse, OCRErrorCode } from "@/types/medicine";
 
@@ -74,14 +73,6 @@ export async function POST(req: NextRequest) {
     logger.info(`Processing OCR request for file: ${file.name} (${file.size} bytes, ${file.type})`);
     
     const lowerName = file.name.toLowerCase();
-
-
-    // Offline / Demo Fallback Mode
-    const demoResponse = getDemoOCRResponse(lowerName, startTime);
-    if (demoResponse) {
-      logger.info(`[DEMO_MODE/Label Match] Returning instant high-confidence pre-recorded OCR response for ${file.name}`);
-      return NextResponse.json(demoResponse, { status: 200 });
-    }
 
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
