@@ -31,26 +31,16 @@ export async function POST(req: NextRequest) {
       quantity,
       expiryDate,
       images: body.images || [],
-      status: "verified",
+      status: "under_review",
     });
 
     const donationId = donation._id.toString();
-    const uniqueId = `MED-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-    // Auto-create matching inventory record if non-expired
-    if (expiryDate > new Date() && name) {
-      await Inventory.create({
-        medicineId: uniqueId,
-        name,
-        genericName: body.genericName || undefined,
-        category: body.category || "General",
-        quantity,
-        batchNumber: body.batchNumber || undefined,
-        expiryDate,
-        manufacturer: body.manufacturer || undefined,
-        location: body.location || "Main Warehouse",
-        status: "available",
-        donationId,
+    // Trigger AI verification pipeline asynchronously if images are provided
+    if (body.base64Images && body.base64Images.length > 0) {
+      const { runVerificationPipeline } = await import("@/lib/ai-verification-engine");
+      runVerificationPipeline(donationId, body.base64Images).catch((err) => {
+        console.error("Async verification pipeline failed:", err);
       });
     }
 

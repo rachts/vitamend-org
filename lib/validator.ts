@@ -4,9 +4,6 @@ import { isBefore, addMonths, endOfMonth, isValid as isValidDate } from "date-fn
 /**
  * Validates extracted or user-edited medicine details against CDSCO safety standards
  * and standard pharmaceutical distribution rules.
- * 
- * TODO: The expiry date parsing here is a massive hack. I need to replace this
- * with a proper date library or AI structured output soon, but it works for now.
  */
 export function validateMedicineDetails(details: ExtractedMedicineDetails): MedicineValidationResult {
   const errors: ValidationFieldError[] = [];
