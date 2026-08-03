@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --bg-primary: #F5F2EC;
+    --bg-secondary: #EDE9DF;
+    --bg-card: #FAFAF7;
+    --text-primary: #1C1A14;
+    --text-secondary: #5C5545;
+    --text-muted: #9A9080;
+    --accent-dark: #2C3320;
+    --accent-dark-hover: #3D4A2E;
+    --accent-rust: #C1440E;
+    --border: #D8D2C4;
+    --stat-number: #1C1A14;
+
+    /* Typography scale */
+    --text-hero: clamp(2.8rem, 6vw, 5.5rem);
+    --text-h1: clamp(2.2rem, 4vw, 3.5rem);
+    --text-h2: clamp(1.6rem, 2.5vw, 2.2rem);
+    --text-h3: clamp(1.2rem, 1.8vw, 1.5rem);
+    --text-stat: clamp(2.5rem, 5vw, 4rem);
+    --text-body: 1rem;
+    --text-small: 0.875rem;
+    --text-label: 0.7rem;
+
+    --tracking-label: 0.12em;
+
+    /* Spacing & Shape */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  .dark {
+    /* Dark Mode */
+    --bg-primary: #141210;
+    --bg-secondary: #1C1A15;
+    --bg-card: #222018;
+    --text-primary: #F0EDE5;
+    --text-secondary: #B8B09E;
+    --text-muted: #6E6758;
+    --accent-dark: #4A5C34;
+    --accent-dark-hover: #5A7040;
+    --accent-rust: #E05A20;
+    --border: #2E2B22;
+    --stat-number: #F0EDE5;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    font-weight: 400;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background: var(--accent-dark);
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 150ms ease, transform 150ms ease;
+  }
+  
+  .btn-primary:hover {
+    background: var(--accent-dark-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors;
+  }
+
+  .btn-primary-saas {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors;
+  }
+
+  .btn-secondary-saas {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors;
+  }
+
+  .card-saas {
+    @apply bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-100 dark:border-neutral-800 p-6;
+  }
+
+  .font-heading {
+    @apply font-serif font-semibold tracking-tight;
+  }
+
+  .font-body {
+    @apply font-sans text-slate-600 dark:text-slate-400;
+  }
+  
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 11px 23px;
+    border-radius: var(--radius-sm);
+    transition: border-color 150ms ease, background 150ms ease;
+    cursor: pointer;
+  }
+  
+  .btn-ghost:hover {
+    background: var(--bg-secondary);
+    border-color: var(--text-muted);
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  
+  .badge-amber { background: #F5E6C8; color: #7A5200; }
+  .badge-teal { background: #C8E6E0; color: #1A4D3A; }
+  .badge-completed, .badge-verified { background: #D4E8D4; color: #1A4D1A; }
+  .badge-pending { background: #EDE9DF; color: #5C5545; }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-card) 50%, var(--bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      transition: none;
+    }
+  }
+}
