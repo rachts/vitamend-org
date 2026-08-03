@@ -136,7 +136,7 @@ export default function HomePage() {
                 icon: <Truck size={64} className="text-[var(--text-primary)]" strokeWidth={1} />,
               },
             ].map((card, i) => (
-              <RevealWrapper key={i}>
+              <div key={i} className="fade-in">
                 <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius-md)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
                   <div className="h-48 w-full bg-[var(--bg-secondary)] flex items-center justify-center transition-transform duration-500 group-hover:bg-[var(--bg-card)]">
                     {card.icon}
