@@ -136,20 +136,45 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // TODO: Replace fuzzy regex duplicate check with proper Levenshtein distance — current approach matches "Paracetamol" and "Para-Cetamol" as different medicines.
-      // Fuzzy regex match on name
-      function escapeRegExp(string: string): string {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      }
-      const regexName = new RegExp(escapeRegExp(ocrResult.name || ""), "i");
-
-      const duplicates = await Medicine.countDocuments({
+      // Fetch all recent medicines to perform Levenshtein distance check in-memory
+      const recentMeds = await Medicine.find({
         _id: { $ne: medicineId },
-        name: { $regex: regexName },
-        batchNumber: ocrResult.batchNumber,
         createdAt: { $gte: thirtyDaysAgo },
         status: { $in: ["pending", "under_review", "approved"] },
-      });
+      }).lean();
+
+      const levenshteinDistance = (s: string, t: string) => {
+        if (!s.length) return t.length;
+        if (!t.length) return s.length;
+        const arr = [];
+        for (let i = 0; i <= t.length; i++) {
+          arr[i] = [i];
+          for (let j = 1; j <= s.length; j++) {
+            arr[i][j] =
+              i === 0
+                ? j
+                : Math.min(
+                    arr[i - 1][j] + 1,
+                    arr[i][j - 1] + 1,
+                    arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+                  );
+          }
+        }
+        return arr[t.length][s.length];
+      };
+
+      const threshold = 3; // Max distance to be considered a duplicate
+      const targetName = (ocrResult.name || "").toLowerCase();
+      const targetBatch = (ocrResult.batchNumber || "").toLowerCase();
+
+      let duplicates = 0;
+      for (const m of recentMeds) {
+        const nameDist = levenshteinDistance(m.name.toLowerCase(), targetName);
+        const batchDist = levenshteinDistance((m.batchNumber || "").toLowerCase(), targetBatch);
+        if (nameDist <= threshold && batchDist <= threshold) {
+          duplicates++;
+        }
+      }
 
       const isDuplicate = duplicates > 0;
 
@@ -213,7 +238,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
     }
 
     // Finalize Updates
-    med.status = decisionResult.decision as typeof MedicineStatus[number];
+    med.status = decisionResult.decision === "rejected" ? "rejected" : "under_review";
     med.verificationResult = {
       confidence: decisionResult.confidence,
       isTampered: aiCheckResult.isTampered,
@@ -235,25 +260,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
     }
     await med.save();
 
-    if (decisionResult.decision === "approved") {
-      const existingInventory = await Inventory.findOne({ medicineId: med._id });
-      if (!existingInventory) {
-        await Inventory.create({
-          medicineId: med._id,
-          name: med.name,
-          genericName: med.genericName,
-          quantity: med.quantity,
-          batchNumber: med.batchNumber,
-          expiryDate: med.expiryDate,
-          manufacturer: med.manufacturer,
-          location: "Main Warehouse",
-          status: "available",
-          donationId: med._id, // the donation IS the medicine record initially
-        });
-      }
-    } else if (decisionResult.decision === "under_review") {
-      await notifyReviewers(med._id.toString(), med.name);
-    }
+    await notifyReviewers(med._id.toString(), med.name);
 
     return { success: true, decision: decisionResult.decision, logs };
 

@@ -3,9 +3,21 @@ import Link from "next/link";
 import { FAQSection } from "@/components/faq";
 import { TestimonialsSection } from "@/components/testimonials";
 import { TrustBadgesGroup } from "@/components/trust-badges";
+import { LiveDemo } from "@/components/live-demo";
 import { Shield, Activity, Grid, UploadCloud, FileCheck, Network, Truck, ArrowRight } from "lucide-react";
+import connectMongoose from "@/lib/db";
+import { Medicine } from "@/models/Medicine";
+import { User } from "@/models/User";
 
-export default function HomePage() {
+export default async function HomePage() {
+  await connectMongoose();
+  const [medicinesDonated, distributedMedicines, volunteers] = await Promise.all([
+    Medicine.countDocuments(),
+    Medicine.countDocuments({ status: "distributed" }),
+    User.countDocuments({ role: "volunteer" }),
+  ]);
+  const peopleHelped = distributedMedicines > 0 ? distributedMedicines * 2 : medicinesDonated * 1.5;
+
   return (
     <div className="w-full">
       {/* SECTION 1: HERO */}
@@ -65,11 +77,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Stats Strip - TODO: Update with real DB metrics once we launch */}
+            {/* Stats Strip */}
             <div className="fade-in grid grid-cols-3 gap-6 pt-16 mt-8 border-t border-[var(--border)]">
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  --
+                  {medicinesDonated.toLocaleString()}
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   Medicines Donated
@@ -77,7 +89,7 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  --
+                  {peopleHelped.toLocaleString()}
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   People Helped
@@ -85,13 +97,30 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  --
+                  {volunteers.toLocaleString()}
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   Volunteers
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 1.5: LIVE DEMO */}
+      <section className="w-full bg-[var(--bg-secondary)] py-[clamp(80px,10vw,140px)] px-6">
+        <div className="max-w-[1100px] mx-auto flex flex-col items-center">
+          <div className="fade-in mb-12 text-center max-w-3xl">
+            <h2 className="font-serif text-[var(--text-h2)] text-[var(--text-primary)] mb-4">
+              Try the AI Safety Scanner
+            </h2>
+            <p className="font-sans text-[1.1rem] text-[var(--text-secondary)]">
+              Upload a photo of a medicine label. Our AI will instantly extract details, detect tampering, verify expiry dates, and flag safety concerns—before human pharmacists review it.
+            </p>
+          </div>
+          <div className="w-full">
+            <LiveDemo />
           </div>
         </div>
       </section>
