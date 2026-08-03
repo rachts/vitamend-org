@@ -12,6 +12,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
+    // Vercel edge functions sometimes timeout and throw uncatchable errors
+    // that bubble up here. We log them so Sentry catches them.
     console.error("App Router error boundary caught:", error);
   }, [error]);
 

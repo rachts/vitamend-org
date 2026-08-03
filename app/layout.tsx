@@ -2,7 +2,6 @@ import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import Providers from "./providers";
-import ClientWrappers from "./_client-wrappers";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
@@ -58,14 +57,6 @@ const jsonLd = {
   "url": "https://vitamend.in",
   "logo": "https://vitamend.in/icon.svg",
   "description": "AI-powered pharmaceutical redistribution platform bridging surplus medicine with community health clinics.",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Okhla Industrial Estate Phase III",
-    "addressLocality": "New Delhi",
-    "addressRegion": "Delhi",
-    "postalCode": "110020",
-    "addressCountry": "IN"
-  },
   "contactPoint": {
     "@type": "ContactPoint",
     "telephone": "+91-11-4050-9980",
@@ -86,10 +77,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased font-body">
         <Providers>
-          <ClientWrappers>
-            {children}
-            <Toaster />
-          </ClientWrappers>
+          {children}
+          <Toaster />
         </Providers>
       </body>
     </html>

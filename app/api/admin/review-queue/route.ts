@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectMongoose from "@/lib/db/mongoose";
+import connectMongoose from "@/lib/db";
 import { Medicine } from "@/models/Medicine";
 import { VerificationLog } from "@/models/VerificationLog";
 

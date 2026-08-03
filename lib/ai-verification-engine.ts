@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { VerificationLog, Medicine, Inventory, MedicineStatus } from "@/models";
+import { VerificationLog } from "@/models/VerificationLog";
+import { Medicine, MedicineStatus } from "@/models/Medicine";
+import { Inventory } from "@/models/Inventory";
 import { notifyReviewers } from "./notifications";
 import { z } from "zod";
 
@@ -53,9 +55,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       },
     }));
 
-    // ==========================================
     // STAGE 1: OCR (Gemini 1.5 Flash Vision)
-    // ==========================================
     let ocrResult: z.infer<typeof OcrResultSchema>;
     const OcrResultSchema = z.object({
       name: z.string().optional(),
@@ -73,8 +73,19 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       const prompt = `Analyze these medicine images and extract: name, genericName, dosage, batchNumber, expiryDate (ISO YYYY-MM-DD), manufacturer, qrCode. Return strict JSON only without markdown formatting. Include a 'confidence' field between 0-100 indicating how clear the text is.`;
       
       const result = await model.generateContent([prompt, ...imageParts]);
+      // Gemini 1.5 Flash occasionally wraps JSON in markdown code blocks despite the prompt asking for raw JSON.
       const text = result.response.text().replace(/```json|```/g, "").trim();
-      ocrResult = OcrResultSchema.parse(JSON.parse(text));
+      try {
+        ocrResult = OcrResultSchema.parse(JSON.parse(text));
+      } catch {
+        // Fallback: try to extract JSON object via regex if there's trailing conversational text
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+          ocrResult = OcrResultSchema.parse(JSON.parse(match[0]));
+        } else {
+          throw new Error("Could not parse JSON from AI response.");
+        }
+      }
 
       await logStage("ocr", "success", ocrResult, ocrResult.confidence);
     } catch (e: unknown) {
@@ -83,9 +94,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       throw new Error("OCR Stage failed: Invalid AI response format");
     }
 
-    // ==========================================
     // STAGE 2: AI Verification (Gemini 1.5 Flash)
-    // ==========================================
     let aiCheckResult: AICheckResult;
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -93,7 +102,16 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       
       const result = await model.generateContent([prompt, ...imageParts]);
       const text = result.response.text().replace(/```json|```/g, "").trim();
-      aiCheckResult = JSON.parse(text);
+      try {
+        aiCheckResult = JSON.parse(text);
+      } catch {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+          aiCheckResult = JSON.parse(match[0]);
+        } else {
+          throw new Error("Could not parse JSON from AI response.");
+        }
+      }
 
       const status = aiCheckResult.isTampered || aiCheckResult.isRecalled ? "warning" : "success";
       await logStage("ai_check", status, aiCheckResult, aiCheckResult.tamperConfidence);
@@ -103,9 +121,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       throw new Error("AI Verification Stage failed");
     }
 
-    // ==========================================
     // STAGE 3: Database Cross-Check
-    // ==========================================
     let dbCheckResult: DBCheckResult;
     try {
       const parsedExpiry = new Date(ocrResult.expiryDate || Date.now());
@@ -120,6 +136,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+      // TODO: Replace fuzzy regex duplicate check with proper Levenshtein distance — current approach matches "Paracetamol" and "Para-Cetamol" as different medicines.
       // Fuzzy regex match on name
       function escapeRegExp(string: string): string {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -150,44 +167,33 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       throw new Error("DB Check Stage failed");
     }
 
-    // ==========================================
     // STAGE 4: Decision Engine
-    // ==========================================
     let decisionResult: DecisionResult;
     try {
       let finalConfidence = ocrResult.confidence;
       let reasoning = "";
 
-      if (aiCheckResult.isTampered) {
-        finalConfidence -= 40;
-        reasoning += "Penalty: Tampering detected (-40). ";
-      }
-      if (aiCheckResult.isRecalled) {
-        finalConfidence -= 50;
-        reasoning += "Penalty: Recalled batch (-50). ";
-      }
-      if (dbCheckResult.isExpired) {
-        finalConfidence -= 60;
-        reasoning += "Penalty: Medicine is expired (-60). ";
-      }
+      // We use a threshold-based logic instead of naive point deduction (-40, -50).
+      // Any critical safety check failure is an automatic rejection.
+      const isCriticalFailure = aiCheckResult.isTampered || aiCheckResult.isRecalled || dbCheckResult.isExpired;
+      
+      if (aiCheckResult.isTampered) reasoning += "Safety Check Failed: Tampering detected. ";
+      if (aiCheckResult.isRecalled) reasoning += "Safety Check Failed: Recalled batch. ";
+      if (dbCheckResult.isExpired) reasoning += "Safety Check Failed: Medicine is expired. ";
+      
       if (dbCheckResult.isDuplicate) {
-        finalConfidence -= 20;
-        reasoning += "Penalty: Duplicate batch submitted recently (-20). ";
+        finalConfidence = Math.max(0, finalConfidence - 20); // Minor penalty
+        reasoning += "Warning: Duplicate batch submitted recently. ";
       }
-      if (ocrResult.confidence < 60) {
-        finalConfidence -= 15;
-        reasoning += "Penalty: Low OCR clarity (-15). ";
-      }
-
-      finalConfidence = Math.max(0, Math.min(100, finalConfidence));
 
       let decision: "approved" | "rejected" | "under_review" = "under_review";
-      if (finalConfidence >= 85 && !aiCheckResult.isTampered && !dbCheckResult.isExpired && !aiCheckResult.isRecalled) {
-        decision = "approved";
-        reasoning += "Decision: Approved (Meets all safety criteria).";
-      } else if (finalConfidence < 50 || aiCheckResult.isTampered || dbCheckResult.isExpired || aiCheckResult.isRecalled) {
+      
+      if (isCriticalFailure) {
         decision = "rejected";
         reasoning += "Decision: Rejected (Critical safety failure).";
+      } else if (finalConfidence >= 80 && !dbCheckResult.isDuplicate) {
+        decision = "approved";
+        reasoning += "Decision: Approved (Meets all safety criteria).";
       } else {
         decision = "under_review";
         reasoning += "Decision: Under Review (Requires manual inspection).";
@@ -206,9 +212,7 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       throw new Error("Decision Stage failed");
     }
 
-    // ==========================================
     // Finalize Updates
-    // ==========================================
     med.status = decisionResult.decision as typeof MedicineStatus[number];
     med.verificationResult = {
       confidence: decisionResult.confidence,

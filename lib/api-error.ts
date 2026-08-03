@@ -11,6 +11,8 @@ export class ApiError extends Error {
 }
 
 export function handleApiError(error: unknown) {
+  // Catch-all for API route errors so I don't have to write
+  // try-catch blocks with 500 responses in every single file
   console.error("API Error:", error)
 
   if (error instanceof ApiError) {

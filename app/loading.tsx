@@ -1,6 +1,8 @@
 import React from "react";
 
 export default function Loading() {
+  // Full screen loader because the cold start on MongoDB Atlas Free Tier
+  // takes like 3 seconds and I want people to know the site isn't dead
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-neutral-950 select-none font-sans p-6">
       <div className="flex flex-col items-center gap-5">

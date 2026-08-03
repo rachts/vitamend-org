@@ -1,5 +1,5 @@
 import { Distribution } from "@/models/Distribution";
-import connectMongoose from "@/lib/db/mongoose";
+import connectMongoose from "@/lib/db";
 import { Package } from "lucide-react";
 import { revalidatePath } from "next/cache";
 

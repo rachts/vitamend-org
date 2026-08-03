@@ -63,41 +63,12 @@ export default function Footer() {
           </form>
         </div>
 
-        {/* 6-Column Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 pt-4">
-          {/* Col 1: Organization */}
+        {/* Simplified 3-Column Links Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 pt-4">
+          {/* Col 1: Action */}
           <div className="space-y-3">
             <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Company
-            </h4>
-            <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
-              <li>
-                <Link href="/about" className="hover:text-[var(--text-primary)] transition-colors">
-                  About Us & Mission
-                </Link>
-              </li>
-              <li>
-                <Link href="/founders" className="hover:text-[var(--text-primary)] transition-colors">
-                  The Founders
-                </Link>
-              </li>
-              <li>
-                <Link href="/about#team" className="hover:text-[var(--text-primary)] transition-colors">
-                  Leadership & Advisory
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-[var(--text-primary)] transition-colors">
-                  Contact & Support
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 2: Donate & Action */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Donate
+              Platform
             </h4>
             <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
               <li>
@@ -106,85 +77,22 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/donor-guide" className="hover:text-[var(--text-primary)] transition-colors">
-                  Donor Guidelines
-                </Link>
-              </li>
-              <li>
                 <Link href="/store" className="hover:text-[var(--text-primary)] transition-colors">
                   Public Medicine Store
                 </Link>
               </li>
               <li>
-                <Link href="/donate#pickup" className="hover:text-[var(--text-primary)] transition-colors">
-                  Schedule Pickup
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Community & Volunteers */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Volunteer
-            </h4>
-            <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
-              <li>
                 <Link href="/volunteer" className="hover:text-[var(--text-primary)] transition-colors">
                   Become a Volunteer
                 </Link>
               </li>
-              <li>
-                <Link href="/volunteer#roles" className="hover:text-[var(--text-primary)] transition-colors">
-                  Medical & Pickup Roles
-                </Link>
-              </li>
-              <li>
-                <Link href="/volunteer#ambassador" className="hover:text-[var(--text-primary)] transition-colors">
-                  Campus Ambassador
-                </Link>
-              </li>
-              <li>
-                <Link href="/volunteer#certification" className="hover:text-[var(--text-primary)] transition-colors">
-                  Certifications & Perks
-                </Link>
-              </li>
             </ul>
           </div>
 
-          {/* Col 4: Healthcare Partners */}
+          {/* Col 2: Transparency */}
           <div className="space-y-3">
             <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Clinics & NGOs
-            </h4>
-            <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
-              <li>
-                <Link href="/clinics" className="hover:text-[var(--text-primary)] transition-colors">
-                  Partner Clinic Portal
-                </Link>
-              </li>
-              <li>
-                <Link href="/clinics#request" className="hover:text-[var(--text-primary)] transition-colors">
-                  Request Inventory
-                </Link>
-              </li>
-              <li>
-                <Link href="/clinics#priority" className="hover:text-[var(--text-primary)] transition-colors">
-                  Urgent Shortage Queue
-                </Link>
-              </li>
-              <li>
-                <Link href="/clinics#register" className="hover:text-[var(--text-primary)] transition-colors">
-                  Register Partner Clinic
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 5: Transparency & Data */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Transparency
+              Impact
             </h4>
             <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
               <li>
@@ -193,27 +101,17 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/transparency#ledger" className="hover:text-[var(--text-primary)] transition-colors">
-                  Verifiable Ledger
-                </Link>
-              </li>
-              <li>
-                <Link href="/about#cdsco" className="hover:text-[var(--text-primary)] transition-colors">
-                  CDSCO Compliance
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/disposal" className="hover:text-[var(--text-primary)] transition-colors">
-                  Safe Disposal Policy
+                <Link href="/clinics" className="hover:text-[var(--text-primary)] transition-colors">
+                  Partner Clinics
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 6: Legal & Safety */}
+          {/* Col 3: Legal */}
           <div className="space-y-3">
             <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Legal & Privacy
+              Legal
             </h4>
             <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
               <li>
@@ -224,16 +122,6 @@ export default function Footer() {
               <li>
                 <Link href="/legal/terms" className="hover:text-[var(--text-primary)] transition-colors">
                   Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/disclaimer" className="hover:text-[var(--text-primary)] transition-colors">
-                  Medical Disclaimer
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/ocr-policy" className="hover:text-[var(--text-primary)] transition-colors">
-                  OCR Data Consent
                 </Link>
               </li>
             </ul>

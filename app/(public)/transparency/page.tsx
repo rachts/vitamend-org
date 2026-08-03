@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import connectMongoose from "@/lib/db/mongoose";
-import { Medicine } from "@/models";
+import connectMongoose from "@/lib/db";
+import { Medicine } from "@/models/Medicine";
 import { TrustBadge } from "@/components/trust-badges";
 import {
   BarChart3,

@@ -103,23 +103,13 @@ export function LiveDemo() {
                 />
               )}
               
-              {/* Scanning Animation */}
+              {/* Scanning Overlay */}
               {status === "scanning" && (
                 <>
-                  <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
-                  <div 
-                    className="absolute left-0 right-0 h-1 bg-primary shadow-[0_0_15px_rgba(0,108,73,0.8)] z-10 animate-[float_2s_ease-in-out_infinite]"
-                  ></div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface/20 backdrop-blur-sm z-20">
+                  <div className="absolute inset-0 bg-black/40"></div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
                     <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
-                    <span className="font-label-md text-primary bg-surface/80 px-4 py-2 rounded-full shadow-sm">Analyzing via AI...</span>
-                  </div>
-                  {/* Viewfinder brackets */}
-                  <div className="absolute inset-4 border-2 border-primary/40 rounded-xl z-10">
-                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
-                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
+                    <span className="font-label-md text-primary bg-surface/80 px-4 py-2 rounded shadow-sm">Analyzing via AI...</span>
                   </div>
                 </>
               )}

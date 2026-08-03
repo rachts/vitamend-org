@@ -1,5 +1,7 @@
-import { Notification, NotificationType, User } from "@/models";
-import connectMongoose from "@/lib/db/mongoose";
+import { Notification } from "@/models/Notification";
+import { NotificationType } from "@/models/Notification";
+import { User } from "@/models/User";
+import connectMongoose from "@/lib/db";
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;

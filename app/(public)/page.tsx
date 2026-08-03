@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import RevealWrapper from "@/components/RevealWrapper";
 import { FAQSection } from "@/components/faq";
 import { TestimonialsSection } from "@/components/testimonials";
 import { TrustBadgesGroup } from "@/components/trust-badges";
@@ -28,32 +27,28 @@ export default function HomePage() {
 
         <div className="relative z-20 w-full max-w-[1440px] mx-auto px-6 pt-32 pb-16">
           <div className="w-full md:w-[55%] flex flex-col gap-6">
-            <RevealWrapper>
+            <div className="fade-in">
               <h1 className="font-serif text-[var(--text-hero)] text-[var(--text-primary)] font-normal leading-[1.1]">
                 Donate Medicines.<br />Save Lives.
               </h1>
-            </RevealWrapper>
+            </div>
 
-            <RevealWrapper>
-              <span lang="sa" className="font-serif italic text-[1.4rem] text-[var(--accent-rust)]">
-                सर्वे सन्तु निरामया: (May all beings be free from illness)
-              </span>
-            </RevealWrapper>
 
-            <RevealWrapper>
+
+            <div className="fade-in">
               <p className="font-sans text-[var(--text-body)] text-[var(--text-secondary)] max-w-[480px] leading-[1.7]">
                 VitaMend scans medicine labels, verifies expiry dates, and safely routes surplus stock to clinics reporting shortages.
                 Join us in redefining the lifecycle of care.
               </p>
-            </RevealWrapper>
+            </div>
 
-            <RevealWrapper>
+            <div className="fade-in">
               <div className="pt-1">
                 <TrustBadgesGroup />
               </div>
-            </RevealWrapper>
+            </div>
 
-            <RevealWrapper>
+            <div className="fade-in">
               <div className="flex flex-wrap items-center gap-[12px] pt-2">
                 <Link href="/donate" className="btn-primary">
                   Donate Medicines &rarr;
@@ -68,13 +63,13 @@ export default function HomePage() {
                   Clinic Portal
                 </Link>
               </div>
-            </RevealWrapper>
+            </div>
 
-            {/* Stats Strip */}
-            <RevealWrapper className="grid grid-cols-3 gap-6 pt-16 mt-8 border-t border-[var(--border)]">
+            {/* Stats Strip - TODO: Update with real DB metrics once we launch */}
+            <div className="fade-in grid grid-cols-3 gap-6 pt-16 mt-8 border-t border-[var(--border)]">
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  2.4M+
+                  --
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   Medicines Donated
@@ -82,7 +77,7 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  850k
+                  --
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   People Helped
@@ -90,13 +85,13 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  12,000
+                  --
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   Volunteers
                 </span>
               </div>
-            </RevealWrapper>
+            </div>
           </div>
         </div>
       </section>
@@ -104,11 +99,11 @@ export default function HomePage() {
       {/* SECTION 2: HOW VITAMEND WORKS */}
       <section className="w-full bg-[var(--bg-primary)] py-[clamp(80px,10vw,140px)] px-6">
         <div className="max-w-[1100px] mx-auto flex flex-col items-center">
-          <RevealWrapper>
+          <div className="fade-in">
             <h2 className="font-serif text-[var(--text-h2)] text-[var(--text-primary)] text-center mb-16">
               How VitaMend Works
             </h2>
-          </RevealWrapper>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
             {[
@@ -158,25 +153,25 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-              </RevealWrapper>
+              </div>
             ))}
           </div>
 
-          <RevealWrapper className="mt-12 flex flex-wrap justify-center gap-4">
+          <div className="fade-in mt-12 flex flex-wrap justify-center gap-4">
             <Link href="/donate" className="btn-primary flex items-center gap-2">
               Start Medicine Scan <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="/donor-guide" className="btn-ghost">
               Read Donor Guide
             </Link>
-          </RevealWrapper>
+          </div>
         </div>
       </section>
 
       {/* SECTION 3: VALUE PROPS */}
       <section className="w-full bg-[var(--bg-primary)] pb-[clamp(80px,10vw,140px)] px-6">
         <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
-          <RevealWrapper>
+          <div className="fade-in">
             <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-8">
               <Shield size={28} className="text-[var(--text-primary)]" />
               <h3 className="font-serif text-[1.4rem] text-[var(--text-primary)] mt-2">
@@ -186,9 +181,9 @@ export default function HomePage() {
                 Our optical character recognition ensures no expired or recalled batches ever enter the network.
               </p>
             </div>
-          </RevealWrapper>
+          </div>
 
-          <RevealWrapper>
+          <div className="fade-in">
             <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-8">
               <Activity size={28} className="text-[var(--text-primary)]" />
               <h3 className="font-serif text-[1.4rem] text-[var(--text-primary)] mt-2">
@@ -198,9 +193,9 @@ export default function HomePage() {
                 By bypassing bureaucratic delays, we route medications directly to under-stocked rural and urban clinics.
               </p>
             </div>
-          </RevealWrapper>
+          </div>
 
-          <RevealWrapper>
+          <div className="fade-in">
             <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-8">
               <Grid size={28} className="text-[var(--text-primary)]" />
               <h3 className="font-serif text-[1.4rem] text-[var(--text-primary)] mt-2">
@@ -210,7 +205,7 @@ export default function HomePage() {
                 Partnering exclusively with CDSCO-licensed pharmacists to maintain the highest standards of safety.
               </p>
             </div>
-          </RevealWrapper>
+          </div>
         </div>
       </section>
 
