@@ -1,4 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files
 
 # dependencies
 /node_modules
@@ -19,16 +19,22 @@
 # misc
 .DS_Store
 *.pem
-
-# debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
-.env*.local
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# local env files — DO NOT ignore .env.example!
 .env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -39,12 +45,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Credentials & secrets
 ocr-service/gcp-credentials.json
 
-# Ignore production environment and sample files
-.env.*
+# Reports
 eslint-report.json
-public/sample-boxes/giant_12mb_image.jpg
-public/sample-boxes/archive.zip
-public/sample-boxes/document.pdf
 
+# Large test assets & sample data
+/public/sample-boxes/
+/public/images/design-mode/
+
+# Static sitemap (use app/sitemap.ts instead)
+/public/sitemap.xml
+
+# Internal docs (move to private wiki)
+/TODO.md
+/DEPLOYMENT.md
+
+# Orphaned service worker (unless actively using custom PWA)
+/public/sw.js

@@ -6,6 +6,7 @@ const redis = new Redis({
 });
 
 export interface RateLimitResult {
+  success: boolean;
   allowed: boolean;
   remaining: number;
   reset: number;
@@ -18,7 +19,7 @@ export async function checkRateLimit(req: Request, capacity = 100, _refillRate =
   
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     console.warn("Upstash Redis not configured, skipping rate limit");
-    return { allowed: true, remaining: capacity, reset: Date.now() + 60000 };
+    return { success: true, allowed: true, remaining: capacity, reset: Date.now() + 60000 };
   }
 
   const now = Date.now();
@@ -34,19 +35,28 @@ export async function checkRateLimit(req: Request, capacity = 100, _refillRate =
 
     // Type checking the pipeline response
     const currentCount = typeof count === 'number' ? count : 1;
+    const isAllowed = currentCount <= capacity;
 
     return {
-      allowed: currentCount <= capacity,
+      success: isAllowed,
+      allowed: isAllowed,
       remaining: Math.max(0, capacity - currentCount),
       reset: now + (windowSeconds * 1000)
     };
   } catch (error) {
     console.error("Rate limit error:", error);
     // Fail open if Redis is down
-    return { allowed: true, remaining: capacity, reset: now + 60000 };
+    return { success: true, allowed: true, remaining: capacity, reset: now + 60000 };
   }
 }
-export function rateLimit(capacity = 10, refillRate = 1) {
+
+export function rateLimit(req: Request): Promise<RateLimitResult>;
+export function rateLimit(capacity?: number, refillRate?: number): (req: Request) => Promise<RateLimitResult>;
+export function rateLimit(reqOrCapacity?: Request | number, refillRate = 1) {
+  if (reqOrCapacity && typeof reqOrCapacity === "object" && "headers" in reqOrCapacity) {
+    return checkRateLimit(reqOrCapacity as Request, 100, 10);
+  }
+  const capacity = typeof reqOrCapacity === "number" ? reqOrCapacity : 10;
   return async function (req: Request) {
     return await checkRateLimit(req, capacity, refillRate);
   };

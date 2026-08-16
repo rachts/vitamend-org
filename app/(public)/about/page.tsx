@@ -25,54 +25,28 @@ export const metadata: Metadata = {
 
 const leadershipTeam = [
   {
-    name: "Founder & Executive Director",
-    role: "CEO & Chief Strategist",
-    bio: "Pioneering technology-first healthcare supply chains to eliminate life-saving pharmaceutical waste.",
+    name: "Rachit Tiwari",
+    role: "Founder",
+    bio: "Building VitaMend to bridge surplus medicine and underserved clinics through AI-powered verification.",
     image: "/founder_new.jpg",
   },
   {
     name: "Nandini Dubey",
     role: "Co-Founder & CTO",
-    bio: "Architecting machine learning OCR verification pipelines and cryptographically auditable ledgers.",
+    bio: "Architecting the AI OCR verification pipeline and platform infrastructure.",
     image: "/images/nandini.jpeg",
   },
-  {
-    name: "Dr. Rajesh K. Sharma, PharmD",
-    role: "Lead Verification Pharmacist",
-    bio: "20+ years in hospital pharmacy operations supervising drug safety protocols and CDSCO compliance.",
-    image: null,
-  },
-  {
-    name: "Meera Subramaniam",
-    role: "Head of Operations & NGO Relations",
-    bio: "Directing clinic network expansion, doorstep pickup logistics, and emergency shortage dispatch.",
-    image: null,
-  },
+  // REMOVE: Dr. Rajesh K. Sharma, Meera Subramaniam (unverified)
 ];
 
-const medicalAdvisors = [
-  {
-    name: "Dr. Vikram Sethi, MD",
-    specialty: "Clinical Pharmacology",
-    institution: "AIIMS New Delhi",
-  },
-  {
-    name: "Dr. Priya Deshmukh, PhD",
-    specialty: "Healthcare Logistics & Policy",
-    institution: "Indian Institute of Public Health",
-  },
-  {
-    name: "Prof. Arvind Mehta",
-    specialty: "Bioethics & Medical Regulatory Compliance",
-    institution: "Global Health Alliance",
-  },
+const medicalAdvisors: { name: string; specialty: string; institution: string }[] = [
+  // EMPTY until signed advisory agreements are in place.
+  // DO NOT add fake names or unverified institutional affiliations.
 ];
 
-const partnerOrganizations = [
-  { name: "Fortis Healthcare Network", category: "Hospital Partner", badge: "Institutional Intake" },
-  { name: "Aarogya Community Clinics", category: "Rural Health Network", badge: "Priority Redistribution" },
-  { name: "Red Cross Medical Aid", category: "NGO Partner", badge: "Logistics Partner" },
-  { name: "CDSCO Guidelines Group", category: "Regulatory Alignment", badge: "Safety Standards" },
+const partnerOrganizations: { name: string; category: string; badge: string }[] = [
+  // REMOVE: Fortis Healthcare Network, Red Cross Medical Aid, CDSCO Guidelines Group
+  // Only add organizations after written partnership agreements exist.
 ];
 
 export default function AboutPage() {
@@ -85,7 +59,7 @@ export default function AboutPage() {
             <Sparkles className="w-4 h-4 text-[#3E492B]" /> About VitaMend Foundation
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-serif font-medium tracking-tight text-[#3E492B]">
+          <h1 className="text-3xl sm:5xl font-serif font-medium tracking-tight text-[#3E492B]">
             Redefining the Lifecycle of Care.
           </h1>
 
@@ -251,13 +225,19 @@ export default function AboutPage() {
             </div>
 
             <div className="space-y-4">
-              {medicalAdvisors.map((adv) => (
-                <div key={adv.name} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 space-y-1">
-                  <h4 className="font-serif text-base font-medium text-[#3E492B]">{adv.name}</h4>
-                  <p className="text-xs text-[#3E492B]/80">{adv.specialty}</p>
-                  <p className="text-[11px] font-mono text-[#3E492B]/60">{adv.institution}</p>
+              {medicalAdvisors.length === 0 ? (
+                <div className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-xs text-[#3E492B]/70 italic">
+                  Advisory panel onboarding in progress. Formal advisory agreements are currently being finalized.
                 </div>
-              ))}
+              ) : (
+                medicalAdvisors.map((adv) => (
+                  <div key={adv.name} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 space-y-1">
+                    <h4 className="font-serif text-base font-medium text-[#3E492B]">{adv.name}</h4>
+                    <p className="text-xs text-[#3E492B]/80">{adv.specialty}</p>
+                    <p className="text-[11px] font-mono text-[#3E492B]/60">{adv.institution}</p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -271,17 +251,23 @@ export default function AboutPage() {
             </div>
 
             <div className="space-y-4">
-              {partnerOrganizations.map((org) => (
-                <div key={org.name} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 flex items-center justify-between gap-4">
-                  <div>
-                    <h4 className="font-serif text-base font-medium text-[#3E492B]">{org.name}</h4>
-                    <p className="text-xs text-[#3E492B]/70">{org.category}</p>
-                  </div>
-                  <span className="text-[10px] font-mono bg-white px-2.5 py-1 rounded border border-[#DDD8CF] text-[#3E492B]/80 shrink-0">
-                    {org.badge}
-                  </span>
+              {partnerOrganizations.length === 0 ? (
+                <div className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-xs text-[#3E492B]/70 italic">
+                  Partner hospital and NGO networks onboarding under formal MoUs.
                 </div>
-              ))}
+              ) : (
+                partnerOrganizations.map((org) => (
+                  <div key={org.name} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 flex items-center justify-between gap-4">
+                    <div>
+                      <h4 className="font-serif text-base font-medium text-[#3E492B]">{org.name}</h4>
+                      <p className="text-xs text-[#3E492B]/70">{org.category}</p>
+                    </div>
+                    <span className="text-[10px] font-mono bg-white px-2.5 py-1 rounded border border-[#DDD8CF] text-[#3E492B]/80 shrink-0">
+                      {org.badge}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -304,7 +290,7 @@ export default function AboutPage() {
                 <FileText className="w-4 h-4 text-[#3E492B]" /> NGO Registration
               </h4>
               <p className="leading-relaxed">
-                Registered non-profit entity under Section 8 of the Indian Companies Act (Reg #NGO-VM-2026-DL). Fully compliant with FCRA and Section 80G tax benefit guidelines for medical donors.
+                An initiative working toward Section 8 non-profit registration under the Indian Companies Act, 2013.
               </p>
             </div>
 

@@ -18,7 +18,7 @@ export default auth(function middleware(req) {
   const session = req.auth;
 
   const origin = req.headers.get("origin") ?? "";
-  const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
+  const isAllowed = allowedOrigins.includes(origin) || origin === `https://${process.env.VERCEL_URL || ""}`;
   const allowOrigin = isAllowed ? origin : allowedOrigins[0] ?? "https://vitamend.in";
 
   const response = NextResponse.next();
@@ -31,8 +31,6 @@ export default auth(function middleware(req) {
   response.headers.set("Permissions-Policy", "camera=(self)");
 
   // CORS
-  // Had to explicitly allow .vercel.app because preview deployments were blocked in production.
-  // Also local development was failing with the AI routes.
   const isApi = nextUrl.pathname.startsWith("/api");
   if (isApi) {
     response.headers.set("Access-Control-Allow-Origin", allowOrigin);
@@ -54,8 +52,7 @@ export default auth(function middleware(req) {
     return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
 
-  // I probably need a better way to do RBAC eventually, but this works for now.
-  if (isAdmin && session?.user?.role !== "admin" && session?.user?.role !== "volunteer") {
+  if (isAdmin && session?.user?.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

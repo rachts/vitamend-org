@@ -14,50 +14,35 @@ export interface Testimonial {
 }
 
 export const testimonialsData: Testimonial[] = [
-  {
-    id: "1",
-    quote:
-      "After recovering from treatment, I had 4 intact boxes of high-value specialty medicine that pharmacies wouldn't take back. VitaMend's AI verification scanned the lot in seconds, and knowing it reached a rural clinic instead of the trash gave me immense peace.",
-    author: "Rohan Sen",
-    role: "Individual Medicine Donor",
-    organization: "New Delhi",
-    category: "Donor",
-    impactMetric: "Saved ₹18,400 in un-expired medicines",
-  },
-  {
-    id: "2",
-    quote:
-      "As a primary health center serving over 12,000 villagers, stockouts of basic antibiotics used to disrupt care weekly. VitaMend's priority routing queue supplies us with verified surplus stock reliably and transparently.",
-    author: "Dr. Ananya Sharma, MD",
-    role: "Chief Medical Officer",
-    organization: "Aarogya Community Clinic, Rajasthan",
-    category: "Clinic",
-    impactMetric: "850+ patients treated with redistributed meds",
-  },
-  {
-    id: "3",
-    quote:
-      "Volunteering with VitaMend as a licensed pharmacist allows me to review OCR-flagged lots remotely. Every sign-off directly prevents biohazard waste while delivering essential care to underserved families.",
-    author: "Vikramaditya Nair, PharmD",
-    role: "Volunteer Verification Pharmacist",
-    organization: "Bengaluru Chapter",
-    category: "Volunteer",
-    impactMetric: "420+ lots verified in 3 months",
-  },
-  {
-    id: "4",
-    quote:
-      "Our hospital pharmacy generates un-opened surplus when treatment plans shift. VitaMend gives us a CDSCO-compliant, automated outlet to redistribute these vital supplies with full digital chain-of-custody tracking.",
-    author: "Dr. Sunita Deshmukh",
-    role: "Director of Pharmacy Operations",
-    organization: "Apex Care Healthcare, Mumbai",
-    category: "Clinic",
-    impactMetric: "1,200+ units redirected into safety net",
-  },
+  // TODO: Populate with real verified testimonials only.
+  // DO NOT ship with fabricated names, credentials, or organizations.
 ];
 
 export function TestimonialsSection({ className = "" }: { className?: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (testimonialsData.length === 0) {
+    return (
+      <section className={`py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto ${className}`}>
+        <div className="text-center space-y-3 mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3E492B]/10 text-[#3E492B] text-xs font-semibold uppercase tracking-wider">
+            <HeartHandshake className="w-4 h-4" /> Real Impact Stories
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-serif font-medium text-[#3E492B] tracking-tight">
+            Voices from the Redistribution Network
+          </h2>
+          <p className="text-sm sm:text-base text-[#3E492B]/80 max-w-2xl mx-auto font-sans">
+            Testimonials from verified donors, pharmacists, and clinics will appear here as the network grows.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-12 shadow-sm text-center">
+          <p className="text-[#3E492B]/60 font-serif italic text-lg">
+            Be the first to share your story. Verified testimonials coming soon.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const prevTestimonial = () => {
     setCurrentIndex((prev) => (prev === 0 ? testimonialsData.length - 1 : prev - 1));
