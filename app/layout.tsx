@@ -19,11 +19,7 @@ const fontDisplay = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXTAUTH_URL?.startsWith("http")
-      ? process.env.NEXTAUTH_URL
-      : `https://${process.env.NEXTAUTH_URL || "vitamend.in"}`
-  ),
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://vitamend.in"),
   title: { default: "VitaMend — Medicine Redistribution Platform", template: "%s | VitaMend" },
   description: "VitaMend scans medicine labels, verifies expiry dates, and routes surplus stock to clinics reporting shortages.",
   keywords: ["medicine redistribution", "surplus medicine", "healthcare platform", "OCR medicine scanning", "NGO medicine donation", "CDSCO compliant"],
@@ -34,10 +30,15 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://vitamend.in",
     siteName: "VitaMend",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "VitaMend", type: "image/png" }],
   },
-  twitter: { card: "summary_large_image", title: "VitaMend", description: "Medicine redistribution built for NGOs, hospitals, and pharmacies.", images: ["/og-image.png"] },
-  icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icon.svg", type: "image/svg+xml" }], apple: "/apple-touch-icon.png" },
+  twitter: {
+    card: "summary_large_image",
+    title: "VitaMend",
+    description: "Medicine redistribution built for NGOs, hospitals, and pharmacies.",
+  },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
   manifest: "/manifest.json",
   category: "Healthcare",
 };

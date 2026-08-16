@@ -9,6 +9,17 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   
   await connectMongoose();
   const resolvedParams = await params;
+
+  if (session.user.role === "admin") {
+    const med = await Medicine.findById(resolvedParams.id).lean();
+    if (!med) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ 
+      success: true, 
+      status: med.status, 
+      result: med.verificationResult 
+    });
+  }
+
   const med = await Medicine.findOne({ 
     _id: resolvedParams.id, 
     donorId: session.user.id 
