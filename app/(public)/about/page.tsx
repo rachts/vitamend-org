@@ -36,7 +36,6 @@ const leadershipTeam = [
     bio: "Architecting the AI OCR verification pipeline and platform infrastructure.",
     image: "/images/nandini.jpeg",
   },
-  // REMOVE: Dr. Rajesh K. Sharma, Meera Subramaniam (unverified)
 ];
 
 const medicalAdvisors: { name: string; specialty: string; institution: string }[] = [
@@ -45,7 +44,6 @@ const medicalAdvisors: { name: string; specialty: string; institution: string }[
 ];
 
 const partnerOrganizations: { name: string; category: string; badge: string }[] = [
-  // REMOVE: Fortis Healthcare Network, Red Cross Medical Aid, CDSCO Guidelines Group
   // Only add organizations after written partnership agreements exist.
 ];
 
@@ -59,7 +57,7 @@ export default function AboutPage() {
             <Sparkles className="w-4 h-4 text-[#3E492B]" /> About VitaMend Foundation
           </div>
 
-          <h1 className="text-3xl sm:5xl font-serif font-medium tracking-tight text-[#3E492B]">
+          <h1 className="text-3xl sm:text-5xl font-serif font-medium tracking-tight text-[#3E492B]">
             Redefining the Lifecycle of Care.
           </h1>
 
@@ -103,7 +101,7 @@ export default function AboutPage() {
             </span>
             <h2 className="text-3xl font-serif font-medium text-[#3E492B]">Why We Built VitaMend</h2>
             <p className="text-sm sm:text-base text-[#3E492B]/80 leading-relaxed">
-              Every year, over ₹5,000 Crore worth of un-opened, non-expired pharmaceuticals are discarded in urban hubs, while thousands of rural community health centers face critical deficits of essential antibiotics and chronic care medications.
+              Every year, vast quantities of un-opened, non-expired pharmaceuticals are discarded in urban hubs, while rural community health centers face critical deficits of essential antibiotics and chronic care medications.
             </p>
           </div>
 
@@ -117,13 +115,13 @@ export default function AboutPage() {
             <div className="space-y-2">
               <h4 className="font-serif text-lg font-medium text-[#3E492B]">2. Full Transparency</h4>
               <p className="text-xs text-[#3E492B]/70 leading-relaxed">
-                Cryptographically verifiable ledger ensuring every donated blister pack can be traced to its recipient clinic.
+                Digital ledger ensuring every donated blister pack can be traced from donation to recipient clinic.
               </p>
             </div>
             <div className="space-y-2">
               <h4 className="font-serif text-lg font-medium text-[#3E492B]">3. Zero Biohazard Waste</h4>
               <p className="text-xs text-[#3E492B]/70 leading-relaxed">
-                Expired or invalid items are safely routed to authorized CPCB incineration partners.
+                Expired or invalid items are safely routed to authorized CPCB-compliant disposal partners.
               </p>
             </div>
           </div>
@@ -137,14 +135,14 @@ export default function AboutPage() {
             </span>
             <h2 className="text-3xl font-serif font-medium text-[#3E492B]">4-Step Safety Verification Workflow</h2>
             <p className="text-xs sm:text-sm text-[#3E492B]/80">
-              How we guarantee 100% authenticity and medical safety from donor intake to clinic dispatch.
+              How we guarantee authenticity and medical safety from donor intake to clinic dispatch.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
             {[
               { step: "01", title: "Donor Label Scan", desc: "Computer vision OCR extracts medicine name, batch, and expiry date.", icon: Cpu },
-              { step: "02", title: "Safety Cross-Check", desc: "Automated query against national drug recall ledgers & CDSCO alerts.", icon: ShieldCheck },
+              { step: "02", title: "Safety Cross-Check", desc: "Automated query against drug recall databases & safety criteria.", icon: ShieldCheck },
               { step: "03", title: "Pharmacist Sign-Off", desc: "Licensed pharmacist reviews physical packaging integrity & batch lot.", icon: UserCheck },
               { step: "04", title: "Priority Dispatch", desc: "Automated routing to verified clinics based on deficit urgency.", icon: Building2 },
             ].map((s) => (
@@ -186,7 +184,7 @@ export default function AboutPage() {
                         width={300}
                         height={300}
                         unoptimized
-                        className="w-full h-full object-cover grayscale-[40%] hover:grayscale-0 transition-all duration-500"
+                        className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-500"
                       />
                     ) : (
                       <div className="text-center p-4">
@@ -204,9 +202,14 @@ export default function AboutPage() {
                   <p className="text-xs text-[#3E492B]/80 leading-relaxed">{member.bio}</p>
                 </div>
 
-                <div className="pt-3 border-t border-[#DDD8CF]/60 flex items-center justify-between text-[10px] font-mono text-[#3E492B]/70">
-                  <span>STATUS: ACTIVE</span>
-                  <TrustBadge variant="pharmacist" size="sm" />
+                <div className="pt-3 border-t border-[#DDD8CF]/60 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-[#3E492B]/70">
+                  <span className="inline-flex items-center gap-1.5 font-medium text-emerald-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    STATUS: ACTIVE
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#3E492B]/10 text-[#3E492B] border border-[#3E492B]/20 text-[10px] font-sans font-medium">
+                    Verified Lead
+                  </span>
                 </div>
               </div>
             ))}

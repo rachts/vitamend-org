@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Building2,
@@ -14,13 +14,27 @@ import {
   FileCheck,
   MapPin,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
+
+interface PublicClinicQueueItem {
+  _id?: string;
+  clinicName: string;
+  city?: string;
+  medicineNeeded?: string;
+  quantityNeeded?: number;
+  urgency?: string;
+  status: string;
+}
 
 export default function ClinicsPage() {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedNotice, setSubmittedNotice] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [queueItems, setQueueItems] = useState<PublicClinicQueueItem[]>([]);
+  const [loadingQueue, setLoadingQueue] = useState(true);
 
   // Requirement Form State
   const [reqForm, setReqForm] = useState({
@@ -34,6 +48,23 @@ export default function ClinicsPage() {
     city: "",
   });
 
+  useEffect(() => {
+    async function loadQueue() {
+      try {
+        const res = await fetch("/api/clinics/request");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.requests)) {
+          setQueueItems(data.requests);
+        }
+      } catch (err) {
+        console.error("Failed to load clinic queue:", err);
+      } finally {
+        setLoadingQueue(false);
+      }
+    }
+    loadQueue();
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setReqForm((prev) => ({ ...prev, [name]: value }));
@@ -42,13 +73,56 @@ export default function ClinicsPage() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    setErrorMessage(null);
+
+    try {
+      const payload = {
+        clinicName: reqForm.clinicName,
+        licenseNo: reqForm.licenseNo,
+        contactPerson: reqForm.contactPerson,
+        email: reqForm.email,
+        city: reqForm.city || undefined,
+        medicineNeeded: isRequestModalOpen ? reqForm.medicineNeeded : undefined,
+        quantityNeeded: isRequestModalOpen && reqForm.quantityNeeded ? Number(reqForm.quantityNeeded) : undefined,
+        urgency: isRequestModalOpen ? reqForm.urgency : undefined,
+        type: isRequestModalOpen ? "shortage_report" : "registration",
+      };
+
+      const res = await fetch("/api/clinics/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit request");
+      }
+
       setIsRequestModalOpen(false);
       setIsRegisterModalOpen(false);
-      setSubmittedNotice("Your clinic request has been queued in our priority routing engine.");
-      setTimeout(() => setSubmittedNotice(null), 5000);
-    }, 1200);
+      setReqForm({
+        clinicName: "",
+        licenseNo: "",
+        contactPerson: "",
+        email: "",
+        medicineNeeded: "",
+        quantityNeeded: "",
+        urgency: "HIGH",
+        city: "",
+      });
+      setSubmittedNotice(
+        isRequestModalOpen
+          ? "Your clinic shortage request has been recorded. Our coordination team will match available surplus."
+          : "Your clinic credentials have been submitted for verification."
+      );
+      setTimeout(() => setSubmittedNotice(null), 6000);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "An error occurred. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +146,7 @@ export default function ClinicsPage() {
               Priority Medicine Allocation for Health Centers
             </h1>
             <p className="text-base text-[#3E492B]/80 leading-relaxed font-sans">
-              Connect your primary health clinic to our live surplus inventory. Receive verified essential pharmaceuticals with full digital chain-of-custody tracking.
+              Connect your primary health clinic to our surplus inventory. Receive verified essential pharmaceuticals with full digital chain-of-custody tracking.
             </p>
 
             <div className="pt-3 flex flex-wrap items-center gap-3">
@@ -101,8 +175,8 @@ export default function ClinicsPage() {
               <p className="text-xs text-[#3E492B]/70 mt-1">Direct redistribution to certified non-profit clinics</p>
             </div>
             <div className="pt-3 border-t border-[#DDD8CF] text-[11px] font-mono text-[#3E492B]/70 flex justify-between">
-              <span>ACTIVE CLINICS: 42</span>
-              <span>CDSCO VERIFIED</span>
+              <span>CLINIC NETWORK: VERIFIED</span>
+              <span>CDSCO GUIDELINES</span>
             </div>
           </div>
         </div>
@@ -114,7 +188,7 @@ export default function ClinicsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#DDD8CF]">
               <div>
                 <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
-                  LIVE ROUTING QUEUE
+                  ROUTING QUEUE
                 </span>
                 <h2 className="text-2xl font-serif font-medium text-[#3E492B] mt-1">Priority Clinic Shortage Queue</h2>
               </div>
@@ -126,34 +200,52 @@ export default function ClinicsPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
-              {[
-                { clinic: "Aarogya Health Center", city: "Alwar, Rajasthan", item: "Amoxicillin 500mg (200 units)", status: "DISPATCHED", urgency: "HIGH" },
-                { clinic: "Seva Rural Clinic", city: "Pune, Maharashtra", item: "Metformin 500mg (150 units)", status: "MATCHING", urgency: "CRITICAL" },
-                { clinic: "Jan Swasthya Kendra", city: "Patna, Bihar", item: "Paracetamol 500mg (300 units)", status: "VERIFYING", urgency: "MEDIUM" },
-              ].map((q, idx) => (
-                <div key={idx} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-serif text-base font-medium text-[#3E492B]">{q.clinic}</span>
-                      <span className="text-[10px] font-mono text-[#3E492B]/60 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {q.city}
+            {loadingQueue ? (
+              <div className="p-8 text-center text-xs text-[#3E492B]/60 flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading shortage queue...
+              </div>
+            ) : queueItems.length === 0 ? (
+              <div className="p-8 text-center border border-dashed border-[#DDD8CF] rounded-xl bg-[#F5F2EC]/40 space-y-2">
+                <Package className="w-8 h-8 text-[#3E492B]/40 mx-auto" />
+                <p className="font-serif text-base text-[#3E492B]">No Active Public Shortages in Queue</p>
+                <p className="text-xs text-[#3E492B]/70 max-w-md mx-auto">
+                  Registered primary health clinics and charitable dispensaries can submit real-time medicine deficit requests using the shortage form.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {queueItems.map((q, idx) => (
+                  <div key={q._id || idx} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-serif text-base font-medium text-[#3E492B]">{q.clinicName}</span>
+                        {q.city && (
+                          <span className="text-[10px] font-mono text-[#3E492B]/60 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" /> {q.city}
+                          </span>
+                        )}
+                      </div>
+                      {q.medicineNeeded && (
+                        <p className="text-[#3E492B]/80 font-mono">
+                          Needed: {q.medicineNeeded} {q.quantityNeeded ? `(${q.quantityNeeded} units)` : ""}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {q.urgency && (
+                        <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded uppercase">
+                          {q.urgency}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded uppercase">
+                        {q.status}
                       </span>
                     </div>
-                    <p className="text-[#3E492B]/80 font-mono">Needed: {q.item}</p>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">
-                      {q.urgency}
-                    </span>
-                    <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded">
-                      {q.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Partner Registration Card */}
@@ -213,10 +305,10 @@ export default function ClinicsPage() {
           </div>
         </div>
 
-        {/* Modal: Report Urgent Requirement */}
+        {/* Modal: Report Urgent Requirement or Register Clinic */}
         {(isRequestModalOpen || isRegisterModalOpen) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-            <div className="w-full max-w-lg rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC] p-6 shadow-xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="w-full max-w-lg rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC] p-6 shadow-xl space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between pb-3 border-b border-[#DDD8CF]">
                 <div>
                   <h3 className="text-lg font-serif font-medium text-[#3E492B]">
@@ -232,12 +324,20 @@ export default function ClinicsPage() {
                   onClick={() => {
                     setIsRequestModalOpen(false);
                     setIsRegisterModalOpen(false);
+                    setErrorMessage(null);
                   }}
                   className="text-[#3E492B]/60 hover:text-[#3E492B] p-1 rounded-lg hover:bg-white/60 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
+
+              {errorMessage && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
 
               <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -246,7 +346,7 @@ export default function ClinicsPage() {
                     <input
                       type="text"
                       name="clinicName"
-                      placeholder="e.g. Aarogya Community Clinic"
+                      placeholder="e.g. Community Health Center"
                       value={reqForm.clinicName}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"
@@ -255,12 +355,25 @@ export default function ClinicsPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-medium text-[#3E492B]">Medical Registration / Reg ID *</label>
+                    <label className="font-medium text-[#3E492B]">Registration / License No *</label>
                     <input
                       type="text"
                       name="licenseNo"
-                      placeholder="e.g. REG-MH-8821"
+                      placeholder="e.g. REG-DL-4412"
                       value={reqForm.licenseNo}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-medium text-[#3E492B]">City / District *</label>
+                    <input
+                      type="text"
+                      name="city"
+                      placeholder="e.g. New Delhi"
+                      value={reqForm.city}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"
                       required
@@ -272,7 +385,7 @@ export default function ClinicsPage() {
                     <input
                       type="text"
                       name="contactPerson"
-                      placeholder="e.g. Dr. Ananya Sharma"
+                      placeholder="e.g. Dr. Priya Sharma"
                       value={reqForm.contactPerson}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"
@@ -280,12 +393,12 @@ export default function ClinicsPage() {
                     />
                   </div>
 
-                  <div className="space-y-1 sm:col-span-2">
+                  <div className="space-y-1">
                     <label className="font-medium text-[#3E492B]">Official Email Address *</label>
                     <input
                       type="email"
                       name="email"
-                      placeholder="clinic@aarogya.org"
+                      placeholder="clinic@example.org"
                       value={reqForm.email}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"
@@ -320,6 +433,21 @@ export default function ClinicsPage() {
                           required
                         />
                       </div>
+
+                      <div className="space-y-1 sm:col-span-2">
+                        <label className="font-medium text-[#3E492B]">Urgency Level *</label>
+                        <select
+                          name="urgency"
+                          value={reqForm.urgency}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"
+                        >
+                          <option value="CRITICAL">Critical (Immediate stockout)</option>
+                          <option value="HIGH">High (Within 7 days)</option>
+                          <option value="MEDIUM">Medium (Within 30 days)</option>
+                          <option value="LOW">Low (Routine replenish)</option>
+                        </select>
+                      </div>
                     </>
                   )}
                 </div>
@@ -330,6 +458,7 @@ export default function ClinicsPage() {
                     onClick={() => {
                       setIsRequestModalOpen(false);
                       setIsRegisterModalOpen(false);
+                      setErrorMessage(null);
                     }}
                     className="btn-secondary text-xs px-4 py-2"
                   >
@@ -344,8 +473,10 @@ export default function ClinicsPage() {
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...
                       </>
+                    ) : isRequestModalOpen ? (
+                      "Submit Shortage Request"
                     ) : (
-                      "Submit Clinic Credentials"
+                      "Register Clinic Credentials"
                     )}
                   </button>
                 </div>

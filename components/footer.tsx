@@ -33,7 +33,7 @@ export default function Footer() {
               Stay Updated on Medicine Redistribution & Impact
             </h3>
             <p className="text-xs text-[var(--text-muted)] max-w-md">
-              Receive monthly transparency reports, CDSCO compliance updates, and community clinic shortage alerts.
+              Receive monthly transparency reports, compliance updates, and community clinic shortage alerts.
             </p>
           </div>
 
@@ -132,7 +132,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[var(--text-secondary)]">
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-[var(--accent-dark)] shrink-0" />
-            <span>Email: <a href="mailto:vitamend.org@gmail.com" className="font-medium hover:underline">vitamend.org@gmail.com</a></span>
+            <span>Email: <a href="mailto:contact@vitamend.in" className="font-medium hover:underline">contact@vitamend.in</a></span>
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-[var(--accent-dark)] shrink-0" />
@@ -140,8 +140,8 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-2 md:justify-end">
             <Award className="w-4 h-4 text-emerald-700 shrink-0" />
-            <span className="font-medium text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
-              CDSCO / CPCB Verified Protocols
+            <span className="font-medium text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 text-[11px]">
+              Protocols aligned with CDSCO & CPCB guidelines
             </span>
           </div>
         </div>

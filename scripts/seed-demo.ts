@@ -18,7 +18,18 @@ if (fs.existsSync(envPath)) {
 async function seedDemoData() {
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
-    console.error('Please define the MONGODB_URI environment variable');
+    console.error('❌ Please define the MONGODB_URI environment variable');
+    process.exit(1);
+  }
+
+  // Production guard: Refuse to execute against production or remote Atlas databases
+  if (
+    process.env.NODE_ENV === "production" ||
+    MONGODB_URI.includes("prod") ||
+    MONGODB_URI.includes("mongodb+srv") ||
+    (!MONGODB_URI.includes("localhost") && !MONGODB_URI.includes("127.0.0.1"))
+  ) {
+    console.error("❌ Refusing to run seed script in production or remote environment. Seeding is only permitted on local MongoDB instances (localhost/127.0.0.1).");
     process.exit(1);
   }
 

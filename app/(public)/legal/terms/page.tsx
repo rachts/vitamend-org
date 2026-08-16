@@ -22,7 +22,7 @@ export default function TermsOfService() {
                 <strong>Eligible Medicines:</strong>
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Unexpired medicines with at least 6 months remaining before expiry</li>
+                <li>Unexpired medicines with at least 60 days remaining before expiry</li>
                 <li>Medicines in original, unopened packaging</li>
                 <li>Properly stored medicines (temperature, humidity controlled)</li>
                 <li>Prescription and over-the-counter medications</li>
@@ -33,7 +33,7 @@ export default function TermsOfService() {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Controlled substances and narcotics</li>
-                <li>Expired or near-expiry medicines (less than 6 months)</li>
+                <li>Expired or near-expiry medicines (less than 60 days)</li>
                 <li>Opened, damaged, or tampered packaging</li>
                 <li>Medicines without clear labeling or batch numbers</li>
                 <li>Recalled medications</li>
@@ -114,26 +114,15 @@ export default function TermsOfService() {
             <div className="text-[#2d3748]">
               <p>
                 Email:{" "}
-                <a href="mailto:vitamend.org@gmail.com" className="text-emerald-600 hover:underline">
-                  vitamend.org@gmail.com
+                <a href="mailto:contact@vitamend.in" className="text-emerald-600 hover:underline">
+                  contact@vitamend.in
                 </a>
               </p>
-              <p>
-                Phone:{" "}
-                <a
-                  href="https://wa.me/919929243215"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 hover:underline"
-                >
-                  +91 9929243215
-                </a>
-              </p>
-              <p>Address: 149/1 J.N. Mukherjee Road, Howrah, Ghusri, West Bengal -711106</p>
+              <p>Address: Healthcare Supply Chain Hub, New Delhi, India</p>
             </div>
           </section>
         </div>
       </div>
     </div>
-  )
+  );
 }

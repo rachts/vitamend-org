@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   Mail,
-  Phone,
   MapPin,
   Clock,
   Send,
@@ -219,17 +218,9 @@ export default function ContactPage() {
                   <Mail className="w-4 h-4 text-[#3E492B] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-medium text-[#3E492B] block">Email Support</span>
-                    <a href="mailto:vitamend.org@gmail.com" className="text-[#3E492B]/80 hover:underline">
-                      vitamend.org@gmail.com
+                    <a href="mailto:contact@vitamend.in" className="text-[#3E492B]/80 hover:underline font-medium">
+                      contact@vitamend.in
                     </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
-                  <Phone className="w-4 h-4 text-[#3E492B] shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-medium text-[#3E492B] block">Logistics Hotline</span>
-                    <span className="text-[#3E492B]/80 font-mono">+91 11 4050 9980 (Toll Free)</span>
                   </div>
                 </div>
 
@@ -238,7 +229,7 @@ export default function ContactPage() {
                   <div>
                     <span className="font-medium text-[#3E492B] block">Headquarters</span>
                     <span className="text-[#3E492B]/80 leading-relaxed block">
-                      Healthcare Supply Chain Hub, Okhla Industrial Estate Phase III, New Delhi 110020
+                      Healthcare Supply Chain Hub, New Delhi, India
                     </span>
                   </div>
                 </div>
@@ -248,8 +239,8 @@ export default function ContactPage() {
                   <div>
                     <span className="font-medium text-[#3E492B] block">Operating Hours</span>
                     <span className="text-[#3E492B]/80">Mon – Sat: 09:00 AM – 07:00 PM IST</span>
-                    <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 block mt-1 w-max">
-                      24/7 Emergency Clinic Line Active
+                    <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 block mt-1 w-max">
+                      Emergency Shortage Routing Active
                     </span>
                   </div>
                 </div>
@@ -264,7 +255,7 @@ export default function ContactPage() {
               <div className="h-40 rounded-xl bg-[#F5F2EC] border border-[#DDD8CF] flex flex-col items-center justify-center text-center p-4 text-xs text-[#3E492B]/70">
                 <MapPin className="w-8 h-8 text-[#3E492B]/40 mb-2" />
                 <span className="font-serif font-medium text-[#3E492B] text-sm">New Delhi Logistics Center</span>
-                <span>Okhla Industrial Estate Phase III</span>
+                <span>Supply Chain & Verification Facility</span>
               </div>
             </div>
           </div>

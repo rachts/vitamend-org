@@ -109,8 +109,8 @@ export default function PrivacyPolicy() {
 
               <p>
                 To exercise these rights, contact us at{" "}
-                <a href="mailto:vitamend.org@gmail.com" className="text-emerald-600 hover:underline">
-                  vitamend.org@gmail.com
+                <a href="mailto:contact@vitamend.in" className="text-emerald-600 hover:underline">
+                  contact@vitamend.in
                 </a>
               </p>
             </div>
@@ -172,26 +172,15 @@ export default function PrivacyPolicy() {
             <div className="text-[#2d3748]">
               <p>
                 Email:{" "}
-                <a href="mailto:vitamend.org@gmail.com" className="text-emerald-600 hover:underline">
-                  vitamend.org@gmail.com
+                <a href="mailto:contact@vitamend.in" className="text-emerald-600 hover:underline">
+                  contact@vitamend.in
                 </a>
               </p>
-              <p>
-                Phone:{" "}
-                <a
-                  href="https://wa.me/919929243215"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 hover:underline"
-                >
-                  +91 9929243215
-                </a>
-              </p>
-              <p>Address: 149/1 J.N. Mukherjee Road, Howrah, Ghusri, West Bengal -711106</p>
+              <p>Address: Healthcare Supply Chain Hub, New Delhi, India</p>
             </div>
           </section>
         </div>
       </div>
     </div>
-  )
+  );
 }

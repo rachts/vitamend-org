@@ -60,9 +60,8 @@ const jsonLd = {
   "description": "AI-powered pharmaceutical redistribution platform bridging surplus medicine with community health clinics.",
   "contactPoint": {
     "@type": "ContactPoint",
-    "telephone": "+91-11-4050-9980",
     "contactType": "customer service",
-    "email": "vitamend.org@gmail.com",
+    "email": "contact@vitamend.in",
     "availableLanguage": ["English", "Hindi"]
   }
 };

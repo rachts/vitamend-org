@@ -38,7 +38,7 @@ export const defaultFAQs: FAQItem[] = [
     category: "Safety",
     question: "How are expired or rejected medicines disposed of safely?",
     answer:
-      "Items failing safety checks or falling past their expiration date are routed to authorized eco-friendly medical waste disposal partners adhering to Central Pollution Control Board (CPCB) and CDSCO biohazard incineration protocols.",
+      "Items failing safety checks or falling past their expiration date are routed to authorized eco-friendly medical waste disposal partners adhering to Central Pollution Control Board (CPCB) and CDSCO biohazard safe disposal protocols.",
   },
   {
     category: "Logistics",
@@ -136,10 +136,10 @@ export function FAQSection({
           <ShieldCheck className="w-4 h-4 text-emerald-700" /> Have more questions? Contact our medical safety board.
         </span>
         <a
-          href="mailto:vitamend.org@gmail.com"
+          href="mailto:contact@vitamend.in"
           className="font-medium text-[#3E492B] underline hover:text-[#3E492B]/80 transition-colors"
         >
-          vitamend.org@gmail.com
+          contact@vitamend.in
         </a>
       </div>
     </section>
