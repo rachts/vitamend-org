@@ -4,17 +4,18 @@
 .pnp.js
 .yarn/install-state.gz
 
+# Build outputs
+/.next/
+/out/
+/build
+.dist/
+
 # Testing
 /coverage
 /test-results/
 /playwright-report/
-
-# Next.js
-/.next/
-/out/
-
-# Production
-/build
+/blob-report/
+/playwright/.cache/
 
 # Misc
 .DS_Store
@@ -46,8 +47,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Credentials & secrets (defensive — directory may be created later)
+# Build caches
+.eslintcache
+.turbo
+.cache/
+
+# Credentials & secrets
 ocr-service/gcp-credentials.json
 
 # Reports
 eslint-report.json
+
+# Google Search Console verification files
+public/google*.html
