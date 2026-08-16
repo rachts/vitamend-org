@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { connectMongoose } from '@/lib/db';
 import { Medicine } from '@/models/Medicine';
 import { runVerificationPipeline } from '@/lib/ai-verification-engine';
@@ -7,8 +6,6 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const numMedia = parseInt(formData.get("NumMedia")?.toString() || "0", 10);
-    const bodyText = formData.get("Body")?.toString() || "";
-    const fromNumber = formData.get("From")?.toString() || "";
     
     if (numMedia === 0) {
       const twiml = `
@@ -41,9 +38,11 @@ export async function POST(req: Request) {
 
     // Create a temporary medicine record
     const med = await Medicine.create({
+      donorId: "whatsapp_donor",
       name: "Processing...",
       status: "pending",
       quantity: 1,
+      expiryDate: new Date(),
       // For Demo, default category
       category: "General",
     });

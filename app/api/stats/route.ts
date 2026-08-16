@@ -23,8 +23,8 @@ export async function GET() {
       User.countDocuments({ role: "ngo" }) // Assuming 'ngo' or recipient represents clinics
     ]);
 
-    // "People Helped" can be a derived metric based on distributed medicines
-    const peopleHelped = distributedMedicines > 0 ? distributedMedicines * 2 : approvedDonations * 1.5;
+    // Track actual patients treated via Distribution model, or omit if not tracked
+    const peopleHelped = 0; // Will be implemented when Distribution.patientsTreated field is added
 
     return NextResponse.json({
       success: true,

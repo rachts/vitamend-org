@@ -24,8 +24,9 @@ export async function connectMongoose() {
     const opts = {
       bufferCommands: false,
       dbName: process.env.MONGODB_DB_NAME || "vitamend",
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000, // was 5000
       socketTimeoutMS: 45000,
+      maxPoolSize: 10,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => m);

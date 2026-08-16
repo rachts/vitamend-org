@@ -6,15 +6,15 @@ import { ShieldCheck, ShieldAlert, FileText, Search, Activity, UserCheck, Packag
 import Link from "next/link";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function TransparencyLedgerPage({ params }: PageProps) {
   await connectMongoose();
   
-  const medicineId = params.id;
-  const medicine = await Medicine.findById(medicineId).lean() as IMedicine | null;
-  const logs = await VerificationLog.find({ medicineId }).sort({ createdAt: 1 }).lean() as IVerificationLog[];
+  const { id: medicineId } = await params;
+  const medicine = (await Medicine.findById(medicineId).lean()) as unknown as IMedicine | null;
+  const logs = (await VerificationLog.find({ medicineId }).sort({ createdAt: 1 }).lean()) as unknown as IVerificationLog[];
 
   if (!medicine) {
     return (

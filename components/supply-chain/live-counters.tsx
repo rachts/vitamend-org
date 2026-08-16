@@ -5,17 +5,18 @@ import { motion } from "framer-motion";
 import { useSupplyChainStore } from "@/lib/store/supply-chain-store";
 import { Heart, Activity, Leaf, Pill } from "lucide-react";
 
-const AnimatedCounter = ({ value, label, icon: Icon, color }: { value: number, label: string, icon: any, color: string }) => {
+const AnimatedCounter = ({ value, label, icon: Icon, color }: { value: number, label: string, icon: React.ComponentType<{ className?: string }>, color: string }) => {
   const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
     // Simple spring-like animation effect for counter
-    let start = displayValue;
+    const start = displayValue;
     const end = value;
     if (start === end) return;
     
     const duration = 1000;
     const startTime = performance.now();
+    let animationFrameId: number;
 
     const animate = (time: number) => {
       const elapsed = time - startTime;
@@ -27,11 +28,13 @@ const AnimatedCounter = ({ value, label, icon: Icon, color }: { value: number, l
       setDisplayValue(Math.floor(start + (end - start) * easeProgress));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationFrameId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   return (

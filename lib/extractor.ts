@@ -47,7 +47,7 @@ function parseBatchNumber(text: string): string | null {
   const sanitized = text.replace(/(?:MFG|MFD|MFR)\.?\s*(?:LIC(?:ENCE|ENSE)?|L|DL)\.?\s*(?:NO\.?)?\s*[:=.-]?\s*[A-Z0-9\-_/]+/gi, "");
   
   // Match Indian & international keywords: B.No., B. No., Batch:, Batch No, Lot No, BTH NO, BTH, LOT, BN, B.N. followed by alphanumeric code
-  const batchRegex = /(?:BATCH(?: NO\.?| NUMBER|:)?|B\.? NO\.?|BTH\.?(?: NO\.?)?|LOT(?: NO\.?| NUMBER)?|L\.? NO\.?|BN)\s*[:=.-]?\s*([A-Z0-9\-_/]{2,18})/i;
+  const batchRegex = /(?:BATCH(?: NO\.?| NUMBER|:)?|B\.?\s*NO\.?|BTH\.?(?:\s*NO\.?)?|LOT(?:\s*NO\.?|\s*NUMBER)?|L\.?\s*NO\.?|BN)\s*[:=.-]?\s*([A-Z0-9\-_/]{2,18})/i;
   const match = sanitized.match(batchRegex);
   if (match && match[1]) {
     const candidate = match[1].trim();
@@ -68,8 +68,8 @@ function parseBatchNumber(text: string): string | null {
 }
 
 function parseExpiryDate(text: string): string | null {
-  // Common Indian & standard keywords: Exp.:, Use before:, EXP, EXPIRY, EXP DATE, EXP. DT., USE BY, VALID UP TO, BEST BEFORE, E.D.
-  const expKeywordRegex = /(?:EXP(?:IRY)?(?: DATE|:)?|USE BEFORE|BEST BEFORE|VALID UP TO)\s*[:=.-]?\s*(\b(?:0?[1-9]|1[0-2])[-/ .]+(?:202[0-9]|203[0-9]|[2-9][0-9])|\b(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[-/ .]+(?:202[0-9]|203[0-9]|[2-9][0-9]))/i;
+  // Common Indian & standard keywords: Exp.:, Use before:, USE BY, EXP, EXPIRY, EXP DATE, EXP. DT., USE BY, VALID UP TO, BEST BEFORE, E.D.
+  const expKeywordRegex = /(?:EXP(?:IRY)?(?:\s*DATE|\s*DT\.?|:)?|USE\s*BEFORE|USE\s*BY|BEST\s*BEFORE|VALID\s*UP\s*TO)\s*[:=.-]?\s*(\b(?:0?[1-9]|1[0-2])[-/ .]+(?:202[0-9]|203[0-9]|[2-9][0-9])|\b(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[-/ .]+(?:202[0-9]|203[0-9]|[2-9][0-9]))/i;
   const match = text.match(expKeywordRegex);
   
   if (match && match[1]) {
@@ -79,7 +79,7 @@ function parseExpiryDate(text: string): string | null {
   // Fallback: If no explicit keyword match, look for standalone expiry patterns near dates like MFD / EXP
   const lines = text.split(/\r?\n/);
   for (const line of lines) {
-    if (/(?:exp|use\s*before|best\s*before)/i.test(line)) {
+    if (/(?:exp|use\s*before|use\s*by|best\s*before)/i.test(line)) {
       const dateRegex = /\b((?:0?[1-9]|1[0-2])[-/ .](?:202[0-9]|203[0-9]|[2-9][0-9])|(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[-/ .]?(?:202[0-9]|203[0-9]))/i;
       const dateMatch = line.match(dateRegex);
       if (dateMatch && dateMatch[1]) {
@@ -113,7 +113,7 @@ function parseManufacturer(lines: string[], text: string): string | null {
   const cleanText = text.replace(/(?:MFG|MFD|MFR)\.?\s*(?:LIC(?:ENCE|ENSE)?|L|DL)\.?\s*(?:NO\.?)?\s*[:=.-]?\s*[^\r\n]+/gi, "");
 
   // 1. Look for explicit manufacturing keywords: Manufactured By, Mfd. By, Marketed By, Mkt By, Mfg By (with license excluded)
-  const mfgKeywordRegex = /(?:MANUFACTURED(?: BY)?|MFD\.? BY|MFG\.? BY|MARKETED BY|PRODUCED BY|MFR\.? BY)\s*[:=.-]?\s*([^\r\n]+)/i;
+  const mfgKeywordRegex = /(?:MANUFACTURED(?: BY)?|MFD\.? BY|MFG\.? BY|MARKETED BY|PRODUCED BY|MFR\.? BY|MFR:?)\s*[:=.-]?\s*([^\r\n]+)/i;
   const match = cleanText.match(mfgKeywordRegex);
   
   if (match && match[1] && match[1].trim().length > 2) {
@@ -159,7 +159,7 @@ function parseMRP(text: string): string | null {
   }
 
   // General price fallback (USD / default $)
-  const mrpRegex = /(?:MAX\.?\s*RETAIL\s*PRICE|M\.R\.P\.?|MRP|PRICE|\$)\s*[:=.-]?\s*\$?s*(\d+(?:\.\d{1,2})?)/i;
+  const mrpRegex = /(?:MAX\.?\s*RETAIL\s*PRICE|M\.R\.P\.?|MRP|PRICE|\$)\s*[:=.-]?\s*\$?\s*(\d+(?:\.\d{1,2})?)/i;
   const match = text.match(mrpRegex);
   if (match && match[1]) {
     return `$${Number.parseFloat(match[1]).toFixed(2)}`;
@@ -171,7 +171,7 @@ function parseMRP(text: string): string | null {
 function parseMedicineName(lines: string[]): string | null {
   // Filter out noisy technical lines (batch, exp, mfd, mfg lic no, prices, addresses, instructions, Hindi/regional script noise)
   const candidateLines = lines.filter((line) => {
-    const isNoisy = /^(?:BATCH|LOT|B\.NO|B\.?N\.?|EXP|MFD|MFG|MKT|MRP|PRICE|RS|INR|USE BEFORE|WARNING|CAUTION|FOR ORAL|RX ONLY|KEEP OUT|STORE IN|PLOT NO|INDUSTRIAL|REGD|LIC|DL NO)/i.test(line);
+    const isNoisy = /^(?:BATCH|LOT|B\.NO|B\.?N\.?|EXP|MFD|MFG|MKT|MRP|PRICE|RS|INR|USE BEFORE|USE BY|WARNING|CAUTION|FOR ORAL|RX ONLY|KEEP OUT|STORE IN|PLOT NO|INDUSTRIAL|REGD|LIC|DL NO)/i.test(line);
     const isTooShort = line.replace(/[^a-z0-9]/gi, "").length < 3;
     // Exclude lines with too high ratio of non-ASCII regional script characters when searching for English medicine brand name
     const asciiCount = (line.match(/[a-zA-Z]/g) || []).length;

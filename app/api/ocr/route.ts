@@ -6,23 +6,16 @@ import { logger } from "@/lib/logger";
 import { extractMedicineInfo } from "@/lib/extractor";
 import { validateMedicineDetails } from "@/lib/validator";
 import { scanMedicineLabel } from "@/lib/ai/gemini-ocr";
-import { OCRApiResponse, OCRErrorCode } from "@/types/medicine";
-
-const limiter = rateLimit(10, 1);
+import { OCRApiResponse } from "@/types/medicine";
 
 const SUPPORTED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  const rateLimitResult = await limiter(req);
-  if (!rateLimitResult.allowed) {
-    const errorResponse: OCRApiResponse = {
-      success: false,
-      error: "Too many scan requests. Please wait before scanning again.",
-      code: "API_ERROR",
-    };
-    return NextResponse.json(errorResponse, { status: 429 });
+  const limit = await rateLimit(req);
+  if (!limit.success) {
+    return NextResponse.json({ success: false, error: "Too many requests" }, { status: 429 });
   }
 
   try {
@@ -71,8 +64,6 @@ export async function POST(req: NextRequest) {
     }
 
     logger.info(`Processing OCR request for file: ${file.name} (${file.size} bytes, ${file.type})`);
-    
-    const lowerName = file.name.toLowerCase();
 
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
@@ -185,6 +176,26 @@ export async function POST(req: NextRequest) {
         processingTimeMs,
       };
       return NextResponse.json(errResponse, { status: 504 });
+    }
+
+    if (message.includes("blurred") || message.includes("unclear") || message.includes("BLURRY")) {
+      const errResponse: OCRApiResponse = {
+        success: false,
+        error: "Image is too blurred to read accurately.",
+        code: "BLURRED_IMAGE",
+        processingTimeMs,
+      };
+      return NextResponse.json(errResponse, { status: 422 });
+    }
+
+    if (message.includes("No text detected")) {
+      const errResponse: OCRApiResponse = {
+        success: false,
+        error: "No text detected on the medicine label. Please upload a clear photo of the medicine packaging or label.",
+        code: "NO_TEXT_DETECTED",
+        processingTimeMs,
+      };
+      return NextResponse.json(errResponse, { status: 422 });
     }
 
     const errResponse: OCRApiResponse = {

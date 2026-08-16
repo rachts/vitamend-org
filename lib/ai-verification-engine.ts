@@ -1,13 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { VerificationLog } from "@/models/VerificationLog";
-import { Medicine, MedicineStatus } from "@/models/Medicine";
-import { Inventory } from "@/models/Inventory";
+import { Medicine } from "@/models/Medicine";
 import { notifyReviewers } from "./notifications";
 import { z } from "zod";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || "disabled_key";
 const genAI = new GoogleGenerativeAI(apiKey);
-
 
 interface AICheckResult {
   isTampered: boolean;
@@ -126,8 +124,8 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
     try {
       const parsedExpiry = new Date(ocrResult.expiryDate || Date.now());
       if (isNaN(parsedExpiry.getTime())) {
-        // Fallback or just set a generic past date to trigger expiry
-        parsedExpiry.setFullYear(2000);
+        await logStage("db_check", "failure", { error: "Invalid expiry date from OCR", rawValue: ocrResult.expiryDate });
+        throw new Error("DB Check Stage failed: Could not parse expiry date");
       }
 
       const isExpired = parsedExpiry < new Date();
@@ -171,7 +169,9 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       for (const m of recentMeds) {
         const nameDist = levenshteinDistance(m.name.toLowerCase(), targetName);
         const batchDist = levenshteinDistance((m.batchNumber || "").toLowerCase(), targetBatch);
-        if (nameDist <= threshold && batchDist <= threshold) {
+        const maxLen = Math.max(m.name.length, targetName.length);
+        const isSimilar = nameDist <= threshold || (maxLen > 5 && nameDist / maxLen < 0.2);
+        if (isSimilar && batchDist <= threshold) {
           duplicates++;
         }
       }

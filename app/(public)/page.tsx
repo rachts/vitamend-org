@@ -11,12 +11,12 @@ import { User } from "@/models/User";
 
 export default async function HomePage() {
   await connectMongoose();
-  const [medicinesDonated, distributedMedicines, volunteers] = await Promise.all([
+  const [medicinesDonated, volunteers] = await Promise.all([
     Medicine.countDocuments(),
-    Medicine.countDocuments({ status: "distributed" }),
     User.countDocuments({ role: "volunteer" }),
   ]);
-  const peopleHelped = distributedMedicines > 0 ? distributedMedicines * 2 : medicinesDonated * 1.5;
+  // Track actual patients treated via Distribution model, or 0 if not tracked
+  const peopleHelped = 0;
 
   return (
     <div className="w-full">
@@ -44,8 +44,6 @@ export default async function HomePage() {
                 Donate Medicines.<br />Save Lives.
               </h1>
             </div>
-
-
 
             <div className="fade-in">
               <p className="font-sans text-[var(--text-body)] text-[var(--text-secondary)] max-w-[480px] leading-[1.7]">
@@ -81,7 +79,7 @@ export default async function HomePage() {
             <div className="fade-in grid grid-cols-3 gap-6 pt-16 mt-8 border-t border-[var(--border)]">
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  {medicinesDonated.toLocaleString()}
+                  {medicinesDonated > 0 ? `${(medicinesDonated / 1_000_000).toFixed(1)}M+` : "—"}
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   Medicines Donated
@@ -89,7 +87,7 @@ export default async function HomePage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  {peopleHelped.toLocaleString()}
+                  {peopleHelped > 0 ? `${Math.floor(peopleHelped / 1000)}k` : "—"}
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   People Helped
@@ -97,7 +95,7 @@ export default async function HomePage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-serif text-[var(--text-stat)] text-[var(--stat-number)] leading-none">
-                  {volunteers.toLocaleString()}
+                  {volunteers > 0 ? volunteers.toLocaleString() : "—"}
                 </span>
                 <span className="font-sans text-[var(--text-label)] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] mt-2">
                   Volunteers

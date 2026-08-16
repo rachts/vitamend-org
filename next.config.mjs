@@ -20,12 +20,12 @@ const nextConfig = {
     return config;
   },
 
-  // Production build settings
+  // Production build settings — do not ignore errors in production
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
   images: {

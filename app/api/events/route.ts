@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectMongoose } from '@/lib/db';
 import { VerificationLog } from '@/models/VerificationLog';
+
 // Using server-side polling to drive the live visualization
 export async function GET() {
   try {
@@ -14,6 +15,7 @@ export async function GET() {
       let type = "VERIFICATION_PENDING";
       let title = "System Check";
       let description = "Processing data...";
+      const details = log.details as { decision?: string } | undefined;
       if (log.stage === "ocr" && log.status === "success") {
         type = "OCR_COMPLETED";
         title = "AI Vision Extraction";
@@ -21,14 +23,15 @@ export async function GET() {
       } else if (log.stage === "decision" && log.status === "success") {
         type = "PHARMACIST_APPROVED";
         title = "Verification Complete";
-        description = log.details?.decision === "approved" ? "Medicine cleared for donation." : "Medicine routed for manual review.";
+        description = details?.decision === "approved" ? "Medicine cleared for donation." : "Medicine routed for manual review.";
       }
+      const populatedMed = log.medicineId as unknown as { name?: string } | null;
       return {
         id: log._id.toString(),
         type,
         title,
         description,
-        medicineName: (log.medicineId as any)?.name || "Unknown Medicine",
+        medicineName: populatedMed?.name || "Unknown Medicine",
         confidence: log.confidence,
         timestamp: new Date(log.createdAt).getTime(),
       };

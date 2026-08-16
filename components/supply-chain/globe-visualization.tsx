@@ -3,12 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSupplyChainStore } from "@/lib/store/supply-chain-store";
+import type { GlobeMethods } from "react-globe.gl";
 
 // Dynamically import Globe to avoid SSR issues
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 
 export default function GlobeVisualization() {
-  const globeRef = useRef<any>();
+  const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const activeArcs = useSupplyChainStore((state) => state.activeArcs);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
@@ -26,9 +27,11 @@ export default function GlobeVisualization() {
       
       // Add auto-rotation
       const controls = globeRef.current.controls();
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.5;
-      controls.enableZoom = false; // keep the cinematic framing
+      if (controls) {
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.enableZoom = false; // keep the cinematic framing
+      }
     }
   }, []);
 

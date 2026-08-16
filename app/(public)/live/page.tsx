@@ -1,31 +1,34 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { useSupplyChainStore } from "@/lib/store/supply-chain-store";
+import { useSupplyChainStore, SupplyChainEvent } from "@/lib/store/supply-chain-store";
 import { useNarration } from "@/lib/hooks/use-narration";
 import { Play, Square } from "lucide-react";
 import LiveLedger from "@/components/supply-chain/live-ledger";
 import LiveCounters from "@/components/supply-chain/live-counters";
+
 // Dynamic import for the globe to prevent hydration errors on SSR
 const GlobeVisualization = dynamic(() => import("@/components/supply-chain/globe-visualization"), { 
   ssr: false,
   loading: () => <div className="absolute inset-0 bg-black flex items-center justify-center"><div className="w-12 h-12 border-t-2 border-emerald-500 rounded-full animate-spin"></div></div>
 });
+
 export default function LivingSupplyChainPage() {
   const [isDemoRunning, setIsDemoRunning] = useState(false);
   const { addEvent, addArc, clearArcs, incrementStat, setDemoMode } = useSupplyChainStore();
   useNarration();
+
   // Demo sequence orchestration
   useEffect(() => {
     if (!isDemoRunning) return;
-    let timers: NodeJS.Timeout[] = [];
+    const timers: NodeJS.Timeout[] = [];
     const runSequence = () => {
       // Clear previous
       clearArcs();
       // Cities
       const delhi: [number, number] = [28.7041, 77.1025];
       const mumbai: [number, number] = [19.0760, 72.8777];
-      const bengaluru: [number, number] = [12.9716, 77.5946];
+      
       // T=0s: WhatsApp Donation Received in Delhi
       timers.push(setTimeout(() => {
         addEvent({
@@ -37,6 +40,7 @@ export default function LivingSupplyChainPage() {
           timestamp: Date.now()
         });
       }, 1000));
+
       // T=3s: OCR Completes
       timers.push(setTimeout(() => {
         addEvent({
@@ -49,6 +53,7 @@ export default function LivingSupplyChainPage() {
           timestamp: Date.now()
         });
       }, 4000));
+
       // T=7s: AI Verification Pending
       timers.push(setTimeout(() => {
         addEvent({
@@ -60,6 +65,7 @@ export default function LivingSupplyChainPage() {
           timestamp: Date.now()
         });
       }, 8000));
+
       // T=11s: Pharmacist Approved
       timers.push(setTimeout(() => {
         addEvent({
@@ -137,7 +143,7 @@ export default function LivingSupplyChainPage() {
         
         if (data.success && isSubscribed) {
           // Push new events (store handles deduplication by ID)
-          data.events.forEach((evt: any) => {
+          data.events.forEach((evt: SupplyChainEvent) => {
              addEvent(evt);
           });
         }
@@ -153,7 +159,7 @@ export default function LivingSupplyChainPage() {
       isSubscribed = false;
       clearInterval(interval);
     };
-  }, [isDemoRunning]);
+  }, [isDemoRunning, addEvent]);
 
   return (
     <main className="relative w-screen h-screen bg-black overflow-hidden font-sans">

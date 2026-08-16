@@ -5,6 +5,7 @@ import { runVerificationPipeline } from '../lib/ai-verification-engine';
 vi.mock('@/models/Medicine', () => ({
   Medicine: {
     findById: vi.fn(),
+    find: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue([]) }),
     countDocuments: vi.fn(),
     findByIdAndUpdate: vi.fn(),
   },
@@ -61,6 +62,7 @@ describe('runVerificationPipeline', () => {
       save: mockSave,
     };
     (Medicine.findById as any).mockResolvedValue(mockMedicine);
+    (Medicine.find as any).mockReturnValue({ lean: vi.fn().mockResolvedValue([]) });
     (Medicine.countDocuments as any).mockResolvedValue(0);
 
     // Mock Gemini Responses
@@ -102,6 +104,7 @@ describe('runVerificationPipeline', () => {
       name: 'Amoxicillin',
       save: mockSave,
     });
+    (Medicine.find as any).mockReturnValue({ lean: vi.fn().mockResolvedValue([]) });
     (Medicine.countDocuments as any).mockResolvedValue(0);
 
     mockGenerateContent
@@ -140,6 +143,7 @@ describe('runVerificationPipeline', () => {
       name: 'Amoxicillin',
       save: mockSave,
     });
+    (Medicine.find as any).mockReturnValue({ lean: vi.fn().mockResolvedValue([]) });
     (Medicine.countDocuments as any).mockResolvedValue(0);
 
     mockGenerateContent

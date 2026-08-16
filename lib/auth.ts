@@ -28,8 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         await connectMongoose();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const user = await (User as any).findOne({ email: credentials.email }).select("+password");
+        const user = await User.findOne({ email: credentials.email }).select("+password");
         if (!user) return null;
         const isValid = await user.matchPassword(credentials.password as string);
         if (!isValid) return null;

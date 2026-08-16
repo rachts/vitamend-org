@@ -1,7 +1,21 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema(
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  password?: string;
+  role: "user" | "admin" | "volunteer" | "ngo" | "donor" | "recipient";
+  phone?: string;
+  address?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  matchPassword(enteredPassword: string): Promise<boolean>;
+}
+
+const userSchema = new mongoose.Schema<IUser>(
   {
     name: { type: String, required: true },
     email: {
@@ -25,15 +39,16 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.methods.matchPassword = async function (enteredPassword: string) {
+userSchema.methods.matchPassword = async function (enteredPassword: string): Promise<boolean> {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password") || !this.password) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-export const User = mongoose.models.User || mongoose.model("User", userSchema);
+export const User: Model<IUser> = (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>("User", userSchema);
 export default User;
