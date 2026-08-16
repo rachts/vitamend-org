@@ -1,22 +1,22 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files
-
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
 
-# testing
+# Testing
 /coverage
+/test-results/
+/playwright-report/
 
-# next.js
+# Next.js
 /.next/
 /out/
 
-# production
+# Production
 /build
 
-# misc
+# Misc
 .DS_Store
 *.pem
 *.log
@@ -32,36 +32,22 @@ yarn-error.log*
 *.swo
 *~
 
-# local env files — DO NOT ignore .env.example!
+# Local env files — .env.example is kept intentionally
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# vercel
+# Vercel
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Credentials & secrets
+# Credentials & secrets (defensive — directory may be created later)
 ocr-service/gcp-credentials.json
 
 # Reports
 eslint-report.json
-
-# Large test assets & sample data
-/public/sample-boxes/
-/public/images/design-mode/
-
-# Static sitemap (use app/sitemap.ts instead)
-/public/sitemap.xml
-
-# Internal docs (move to private wiki)
-/TODO.md
-/DEPLOYMENT.md
-
-# Orphaned service worker (unless actively using custom PWA)
-/public/sw.js
