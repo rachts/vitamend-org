@@ -192,7 +192,7 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
 
 ## Contact
 
-**Rachit Tiwari** — [@rachts](https://github.com/rachts) — contact@vitamend.in
+**Rachit Tiwari** — [@rachts](https://github.com/rachts) — vitamend.org@gmail.com
 
 - Repository: [github.com/rachts/vitamend-org](https://github.com/rachts/vitamend-org)
 - Live site: [vitamend-ngo.vercel.app](https://vitamend-ngo.vercel.app)
