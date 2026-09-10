@@ -7,6 +7,58 @@ import { Inventory } from "@/models/Inventory";
 import { AILearningDataset } from "@/models/AILearningDataset";
 import { sendNotification } from "@/lib/notifications";
 
+export async function GET(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || !["admin", "volunteer"].includes(session.user.role)) {
+      return NextResponse.json({ error: "Forbidden: Admins or Volunteers only" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status") || "under_review";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    await connectMongoose();
+
+    const skip = (page - 1) * limit;
+
+    const [medicines, total] = await Promise.all([
+      Medicine.find({ status }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Medicine.countDocuments({ status }),
+    ]);
+
+    // Batch query logs to avoid N+1 queries
+    const medIds = medicines.map((m) => m._id);
+    const logs = await VerificationLog.find({ medicineId: { $in: medIds } }).sort({ createdAt: 1 }).lean();
+    
+    const logsByMedId = new Map<string, typeof logs>();
+    for (const log of logs) {
+      const idStr = String(log.medicineId);
+      if (!logsByMedId.has(idStr)) logsByMedId.set(idStr, []);
+      logsByMedId.get(idStr)!.push(log);
+    }
+
+    const enrichedMedicines = medicines.map((med) => ({
+      ...med,
+      verificationLogs: logsByMedId.get(String(med._id)) || [],
+    }));
+
+    return NextResponse.json({
+      medicines: enrichedMedicines,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error: unknown) {
+    console.error("GET /api/admin/review error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();

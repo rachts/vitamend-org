@@ -1,8 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const getGenAI = () => new GoogleGenerativeAI(
-  process.env.GEMINI_API_KEY || "dummy_key_for_test"
-);
+const getGenAI = () => {
+  if (!process.env.GEMINI_API_KEY && process.env.NODE_ENV === "production") {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+  return new GoogleGenerativeAI(
+    process.env.GEMINI_API_KEY || "dummy_key_for_test"
+  );
+};
 
 export async function scanMedicineLabel(
   imageBuffer: Buffer,
@@ -42,7 +47,8 @@ Plot No. 44, Industrial Area, Mumbai 400001`;
 
   const genAI = getGenAI();
   const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash" 
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json", temperature: 0 }
   });
 
   const imagePart = {
@@ -91,16 +97,45 @@ Plot No. 44, Industrial Area, Mumbai 400001`;
   const response = await result.response;
   const text = response.text();
   
-  const clean = text
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-  
-  const extracted = JSON.parse(clean);
+  interface RawOcrExtracted {
+    medicineName?: string | null;
+    dosage?: string | null;
+    batchNumber?: string | null;
+    expiryDate?: string | null;
+    manufacturer?: string | null;
+    mrp?: string | null;
+    confidence?: number | null;
+  }
+
+  let extracted: RawOcrExtracted;
+  try {
+    extracted = JSON.parse(text);
+  } catch {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        extracted = JSON.parse(match[0]);
+      } catch {
+        throw new Error("OCR returned unparseable output");
+      }
+    } else {
+      throw new Error("OCR returned unparseable output");
+    }
+  }
+
+  const rawText = [
+    extracted.medicineName,
+    extracted.batchNumber ? "Batch No: " + extracted.batchNumber : null,
+    extracted.expiryDate ? "Exp: " + extracted.expiryDate : null,
+    extracted.manufacturer,
+    extracted.mrp,
+  ]
+    .filter(Boolean)
+    .join("\n");
   
   return {
     extracted,
-    rawText: text,
-    confidence: extracted.confidence || 0
+    rawText,
+    confidence: typeof extracted.confidence === "number" ? extracted.confidence : 0
   };
 }

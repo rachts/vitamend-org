@@ -1,4 +1,6 @@
 import { Distribution } from "@/models/Distribution";
+import { Inventory } from "@/models/Inventory";
+import { Medicine } from "@/models/Medicine";
 import connectMongoose from "@/lib/db";
 import { Package } from "lucide-react";
 import { revalidatePath } from "next/cache";
@@ -17,16 +19,53 @@ interface DistributionItem {
   status: string;
 }
 
+interface RawDist {
+  _id: { toString: () => string };
+  inventoryId?: string;
+  recipientName: string;
+  recipientType: string;
+  quantity: number;
+  status: string;
+}
+
+interface RawInv {
+  _id: { toString: () => string };
+  name: string;
+  medicineId?: string;
+}
+
+interface RawMed {
+  _id: { toString: () => string };
+  name: string;
+}
+
 export default async function DistributionsPage() {
   await connectMongoose();
-  const distributions = await Distribution.find().sort({ createdAt: -1 }).populate({
-    path: 'inventoryId',
-    model: 'Inventory',
-    populate: {
-      path: 'medicineId',
-      model: 'Medicine'
-    }
-  }).lean() as unknown as DistributionItem[];
+  const rawDistributions = (await Distribution.find().sort({ createdAt: -1 }).lean()) as unknown as RawDist[];
+
+  const inventoryIds = [...new Set(rawDistributions.map((d) => d.inventoryId).filter(Boolean))];
+  const inventories = (await Inventory.find({ _id: { $in: inventoryIds } }).lean()) as unknown as RawInv[];
+  const inventoryMap = new Map(inventories.map((inv) => [inv._id.toString(), inv]));
+
+  const medicineIds = [...new Set(inventories.map((i) => i.medicineId).filter(Boolean))];
+  const medicines = (await Medicine.find({ _id: { $in: medicineIds } }).lean()) as unknown as RawMed[];
+  const medicineMap = new Map(medicines.map((m) => [m._id.toString(), m]));
+
+  const distributions: DistributionItem[] = rawDistributions.map((dist) => {
+    const inv = dist.inventoryId ? inventoryMap.get(dist.inventoryId) : undefined;
+    const med = inv?.medicineId ? medicineMap.get(inv.medicineId) : undefined;
+    return {
+      _id: { toString: () => dist._id.toString() },
+      inventoryId: inv ? {
+        name: inv.name,
+        medicineId: med ? { name: med.name } : undefined,
+      } : undefined,
+      recipientName: dist.recipientName,
+      recipientType: dist.recipientType,
+      quantity: dist.quantity,
+      status: dist.status,
+    };
+  });
 
   async function updateStatus(formData: FormData) {
     "use server";

@@ -15,107 +15,158 @@ export async function GET(_req: Request) {
 
     await connectMongoose();
 
-    // 1. Donations
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const totalDonations = await (Medicine as any).countDocuments();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const approvedDonations = await (Medicine as any).countDocuments({ status: { $in: ["approved", "distributed"] } });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rejectedDonations = await (Medicine as any).countDocuments({ status: "rejected" });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pendingDonations = await (Medicine as any).countDocuments({ status: "pending" });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const distributedDonations = await (Medicine as any).countDocuments({ status: "distributed" });
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const [
+      medicineStatusCounts,
+      totalItems,
+      inventoryStats,
+      expiringSoon,
+      distStatusStats,
+      byType,
+      monthlyTrendsRaw,
+      decisionStats,
+    ] = await Promise.all([
+      // 1. Medicine status counts in a single aggregation
+      Medicine.aggregate([
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ]),
+
+      // 2. Inventory counts
+      Inventory.countDocuments(),
+
+      // 3. Available stock total quantity
+      Inventory.aggregate([
+        { $match: { status: "available" } },
+        { $group: { _id: null, totalStock: { $sum: "$quantity" } } },
+      ]),
+
+      // 4. Expiring soon
+      Inventory.countDocuments({
+        status: "available",
+        expiryDate: { $lte: thirtyDaysFromNow },
+      }),
+
+      // 5. Distribution status and total delivered quantity in a single aggregation
+      Distribution.aggregate([
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+            quantity: { $sum: "$quantity" },
+          },
+        },
+      ]),
+
+      // 6. Distribution by recipient type
+      Distribution.aggregate([
+        {
+          $group: {
+            _id: "$recipientType",
+            count: { $sum: 1 },
+            totalQuantity: { $sum: "$quantity" },
+          },
+        },
+      ]),
+
+      // 7. Monthly trends
+      Medicine.aggregate([
+        { $match: { createdAt: { $gte: sixMonthsAgo } } },
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            count: { $sum: 1 },
+            approved: { $sum: { $cond: [{ $in: ["$status", ["approved", "distributed"]] }, 1, 0] } },
+            rejected: { $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] } },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+      ]),
+
+      // 8. VerificationLog decisions aggregated directly in MongoDB
+      VerificationLog.aggregate([
+        { $match: { stage: "decision" } },
+        { $group: { _id: "$details.decision", count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    // Parse Medicine status counts
+    let totalDonations = 0;
+    let approvedDonations = 0;
+    let rejectedDonations = 0;
+    let pendingDonations = 0;
+    let distributedDonations = 0;
+
+    for (const stat of medicineStatusCounts) {
+      totalDonations += stat.count;
+      if (stat._id === "approved" || stat._id === "distributed") {
+        approvedDonations += stat.count;
+      }
+      if (stat._id === "distributed") {
+        distributedDonations += stat.count;
+      }
+      if (stat._id === "rejected") {
+        rejectedDonations += stat.count;
+      }
+      if (stat._id === "pending") {
+        pendingDonations += stat.count;
+      }
+    }
 
     const successRate = totalDonations > 0 ? parseFloat(((approvedDonations / totalDonations) * 100).toFixed(1)) : 0;
 
-    // 2. Inventory
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const totalItems = await (Inventory as any).countDocuments();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inventoryStats = await (Inventory as any).aggregate([
-      { $match: { status: "available" } },
-      { $group: { _id: null, totalStock: { $sum: "$quantity" } } },
-    ]).option({ maxTimeMS: 5000 });
+    // Parse Inventory stats
     const totalStock = inventoryStats.length > 0 ? inventoryStats[0].totalStock : 0;
 
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expiringSoon = await (Inventory as any).countDocuments({
-      status: "available",
-      expiryDate: { $lte: thirtyDaysFromNow },
-    });
+    // Parse Distribution stats
+    let totalDist = 0;
+    let deliveredDist = 0;
+    let pendingDist = 0;
+    let inTransitDist = 0;
+    let totalDeliveredQty = 0;
 
-    // 3. Distribution
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const totalDist = await (Distribution as any).countDocuments();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const deliveredDist = await (Distribution as any).countDocuments({ status: "delivered" });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pendingDist = await (Distribution as any).countDocuments({ status: "pending" });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inTransitDist = await (Distribution as any).countDocuments({ status: "in_transit" });
+    for (const stat of distStatusStats) {
+      totalDist += stat.count;
+      if (stat._id === "delivered") {
+        deliveredDist += stat.count;
+        totalDeliveredQty = stat.quantity || 0;
+      } else if (stat._id === "pending") {
+        pendingDist += stat.count;
+      } else if (stat._id === "in_transit") {
+        inTransitDist += stat.count;
+      }
+    }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const byType = await (Distribution as any).aggregate([
-      { $group: { _id: "$recipientType", count: { $sum: 1 }, totalQuantity: { $sum: "$quantity" } } },
-    ]).option({ maxTimeMS: 5000 });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const distQtyStats = await (Distribution as any).aggregate([
-      { $match: { status: "delivered" } },
-      { $group: { _id: null, qty: { $sum: "$quantity" } } },
-    ]).option({ maxTimeMS: 5000 });
-    const totalDeliveredQty = distQtyStats.length > 0 ? distQtyStats[0].qty : 0;
-
-    // 4. Impact Metrics
+    // Impact Metrics
     const medicinesSaved = totalStock + totalDeliveredQty;
     const estimatedLivesImpacted = Math.round(totalDeliveredQty * 2.5);
     const co2SavedKg = Math.round(totalDeliveredQty * 0.5);
     const waterSavedLiters = totalDeliveredQty * 50;
 
-    // 5. Monthly Trends
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const monthlyTrendsRaw = await (Medicine as any).aggregate([
-      { $match: { createdAt: { $gte: sixMonthsAgo } } },
-      {
-        $group: {
-          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
-          count: { $sum: 1 },
-          approved: { $sum: { $cond: [{ $in: ["$status", ["approved", "distributed"]] }, 1, 0] } },
-          rejected: { $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] } },
-        },
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
-    ]).option({ maxTimeMS: 5000 });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const monthlyTrends = monthlyTrendsRaw.map((m: any) => ({
+    // Monthly Trends
+    const monthlyTrends = monthlyTrendsRaw.map((m: { _id: { year: number; month: number }; count: number; approved: number; rejected: number }) => ({
       label: `${m._id.year}-${m._id.month.toString().padStart(2, "0")}`,
       count: m.count,
       approved: m.approved,
       rejected: m.rejected,
     }));
 
-    // 6. AI Performance
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const decisionLogs = await (VerificationLog as any).find({ stage: "decision" }).lean();
-    const totalVerifications = decisionLogs.length;
+    // AI Performance from in-database aggregation
+    let totalVerifications = 0;
     let autoApproved = 0;
     let autoRejected = 0;
     let manualReview = 0;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    decisionLogs.forEach((log: any) => {
-      const decision = (log.details as Record<string, unknown>)?.decision;
-      if (decision === "approved") autoApproved++;
-      else if (decision === "rejected") autoRejected++;
-      else if (decision === "under_review") manualReview++;
-    });
+    for (const d of decisionStats) {
+      totalVerifications += d.count;
+      if (d._id === "approved") autoApproved = d.count;
+      else if (d._id === "rejected") autoRejected = d.count;
+      else if (d._id === "under_review") manualReview = d.count;
+    }
 
     const accuracy =
       totalVerifications > 0

@@ -29,10 +29,14 @@ export function NotificationBell() {
   }
 
   useEffect(() => {
-    fetchNotifications()
-    const interval = setInterval(fetchNotifications, 10000) // Poll every 10s
-    return () => clearInterval(interval)
-  }, [])
+    fetchNotifications();
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchNotifications();
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const markAsRead = async (id: string) => {
     try {

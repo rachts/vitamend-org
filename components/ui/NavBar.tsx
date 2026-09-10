@@ -28,6 +28,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface NavItem {
   label: string;
@@ -144,6 +145,7 @@ export default function NavBar() {
           {/* Auth Button */}
           {session ? (
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <Link
                 href="/dashboard"
                 className="btn-primary text-xs px-4 py-2 rounded-full flex items-center gap-1.5 shadow-sm"

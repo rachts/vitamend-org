@@ -44,7 +44,7 @@ export default function AdminReviewPage() {
 
   const fetchQueue = async () => {
     try {
-      const res = await fetch("/api/admin/review-queue");
+      const res = await fetch("/api/admin/review");
       const data = await res.json();
       if (data.medicines) setQueue(data.medicines);
     } catch (e) {

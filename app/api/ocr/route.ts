@@ -117,7 +117,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 2: Extract structural medicine details from OCR text
-    const extracted = extractMedicineInfo(visionResult.rawText);
+    const hasExtractedFields =
+      visionResult.extracted &&
+      typeof visionResult.extracted === "object" &&
+      (visionResult.extracted.medicineName ||
+        visionResult.extracted.dosage ||
+        visionResult.extracted.batchNumber ||
+        visionResult.extracted.expiryDate ||
+        visionResult.extracted.manufacturer ||
+        visionResult.extracted.mrp);
+
+    const extracted = hasExtractedFields
+      ? {
+          medicineName: visionResult.extracted.medicineName || null,
+          dosage: visionResult.extracted.dosage || null,
+          batchNumber: visionResult.extracted.batchNumber || null,
+          expiryDate: visionResult.extracted.expiryDate || null,
+          manufacturer: visionResult.extracted.manufacturer || null,
+          mrp: visionResult.extracted.mrp || null,
+        }
+      : extractMedicineInfo(visionResult.rawText);
 
     // Step 3: Validate extracted medicine details against regulatory rules
     const validation = validateMedicineDetails(extracted);

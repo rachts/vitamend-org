@@ -67,11 +67,13 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
     });
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      });
       const prompt = `Analyze these medicine images and extract: name, genericName, dosage, batchNumber, expiryDate (ISO YYYY-MM-DD), manufacturer, qrCode. Return strict JSON only without markdown formatting. Include a 'confidence' field between 0-100 indicating how clear the text is.`;
       
       const result = await model.generateContent([prompt, ...imageParts]);
-      // Gemini 1.5 Flash occasionally wraps JSON in markdown code blocks despite the prompt asking for raw JSON.
+      // Gemini occasionally wraps JSON in markdown code blocks despite the prompt asking for raw JSON.
       const text = result.response.text().replace(/```json|```/g, "").trim();
       try {
         ocrResult = OcrResultSchema.parse(JSON.parse(text));
@@ -92,10 +94,12 @@ export async function runVerificationPipeline(medicineId: string, base64Images: 
       throw new Error("OCR Stage failed: Invalid AI response format");
     }
 
-    // STAGE 2: AI Verification (Gemini 1.5 Flash)
+    // STAGE 2: AI Verification (Gemini Vision)
     let aiCheckResult: AICheckResult;
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      });
       const prompt = `Analyze these images for tampering signs (broken seals, discoloration, mismatched labels, water damage, re-glued packaging). Also, check if the medicine '${ocrResult.name}' by '${ocrResult.manufacturer}' is known to be part of any recent FDA/global recalled batches. Return strict JSON only with fields: isTampered (boolean), tamperConfidence (number 0-100), isRecalled (boolean), recallReason (string or null), aiReasoning (string explanation).`;
       
       const result = await model.generateContent([prompt, ...imageParts]);

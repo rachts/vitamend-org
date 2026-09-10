@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectMongoose } from '@/lib/db';
 import { VerificationLog } from '@/models/VerificationLog';
+import { Medicine } from '@/models/Medicine';
 
 // Using server-side polling to drive the live visualization
 export async function GET() {
@@ -10,7 +11,13 @@ export async function GET() {
     const logs = await VerificationLog.find({})
       .sort({ createdAt: -1 })
       .limit(10)
-      .populate('medicineId', 'name genericName status');
+      .lean();
+
+    const medIds = [...new Set(logs.map(l => l.medicineId).filter(Boolean))];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawMedicines = (await (Medicine as any).find({ _id: { $in: medIds } }).select('name genericName status').lean()) as Array<{ _id: { toString: () => string }; name?: string }>;
+    const medMap = new Map<string, { name?: string }>(rawMedicines.map((m) => [m._id.toString(), m]));
+
     const formattedEvents = logs.map(log => {
       let type = "VERIFICATION_PENDING";
       let title = "System Check";
@@ -25,13 +32,13 @@ export async function GET() {
         title = "Verification Complete";
         description = details?.decision === "approved" ? "Medicine cleared for donation." : "Medicine routed for manual review.";
       }
-      const populatedMed = log.medicineId as unknown as { name?: string } | null;
+      const med = medMap.get(log.medicineId);
       return {
         id: log._id.toString(),
         type,
         title,
         description,
-        medicineName: populatedMed?.name || "Unknown Medicine",
+        medicineName: med?.name || "Unknown Medicine",
         confidence: log.confidence,
         timestamp: new Date(log.createdAt).getTime(),
       };
