@@ -1,15 +1,17 @@
 export const runtime = "nodejs";
+// Keep the OCR function alive long enough for an upstream vision request on Vercel.
+export const maxDuration = 60;
 
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { extractMedicineInfo } from "@/lib/extractor";
 import { validateMedicineDetails } from "@/lib/validator";
-import { scanMedicineLabel } from "@/lib/ai/gemini-ocr";
+import { scanMedicineLabel, OCR_TIMEOUT_MS } from "@/lib/ai/gemini-ocr";
 import { OCRApiResponse } from "@/types/medicine";
 
 const SUPPORTED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024; // Leave room for multipart overhead below Vercel's payload ceiling.
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -48,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (file.size > MAX_FILE_SIZE_BYTES) {
       const errorResponse: OCRApiResponse = {
         success: false,
-        error: `File size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds maximum allowance of 10 MB.`,
+        error: `File size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the 4 MB upload limit.`,
         code: "LARGE_FILE",
       };
       return NextResponse.json(errorResponse, { status: 413 });
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest) {
     // Step 1: Send image buffer to Google Gemini OCR Engine with timeout
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error("OCR_TIMEOUT")), 15000);
+      timeoutId = setTimeout(() => reject(new Error("OCR_TIMEOUT")), OCR_TIMEOUT_MS);
     });
     const visionResult = await Promise.race([
       scanMedicineLabel(buffer, file.type || "image/jpeg"),
@@ -98,16 +100,6 @@ export async function POST(req: NextRequest) {
     const confidencePercentage = Math.max(0, Math.min(100, rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence));
     const isBlurred = confidencePercentage < 60;
 
-    if (confidencePercentage < 40) {
-      const errResponse: OCRApiResponse = {
-        success: false,
-        error: "Image is too blurred to read accurately.",
-        code: "BLURRED_IMAGE",
-        processingTimeMs: Date.now() - startTime,
-      };
-      return NextResponse.json(errResponse, { status: 422 });
-    }
-
     if (confidencePercentage < 50) {
       const errResponse: OCRApiResponse = {
         success: false,
@@ -119,27 +111,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 2: Extract structural medicine details from OCR text
-    const hasExtractedFields =
-      visionResult.extracted &&
-      typeof visionResult.extracted === "object" &&
-      (visionResult.extracted.medicineName ||
-        visionResult.extracted.dosage ||
-        visionResult.extracted.batchNumber ||
-        visionResult.extracted.expiryDate ||
-        visionResult.extracted.manufacturer ||
-        visionResult.extracted.mrp);
-
-    const parsedFromText = extractMedicineInfo(visionResult.rawText);
-    const extracted = hasExtractedFields
-      ? {
-          medicineName: visionResult.extracted.medicineName || parsedFromText.medicineName,
-          dosage: visionResult.extracted.dosage || parsedFromText.dosage,
-          batchNumber: visionResult.extracted.batchNumber || parsedFromText.batchNumber,
-          expiryDate: visionResult.extracted.expiryDate || parsedFromText.expiryDate,
-          manufacturer: visionResult.extracted.manufacturer || parsedFromText.manufacturer,
-          mrp: visionResult.extracted.mrp || parsedFromText.mrp,
-        }
-      : parsedFromText;
+    // Structured nulls express uncertainty. Regex fallback must not replace them
+    // with a first ingredient strength, manufacturing date or unrelated heading.
+    const extracted = visionResult.extracted ?? extractMedicineInfo(visionResult.rawText);
 
     // Step 3: Validate extracted medicine details against regulatory rules
     const validation = validateMedicineDetails(extracted);
@@ -188,7 +162,16 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     const processingTimeMs = Date.now() - startTime;
     const message = error instanceof Error ? (error as Error).message : "Unknown error";
-    logger.error("OCR Route Processing Error:", message);
+    // Provider error messages can contain request URLs; never log credentials.
+    logger.error("OCR Route Processing Error", { timeout: message === "OCR_TIMEOUT" });
+
+    if (message === "GEMINI_API_KEY is not configured") {
+      return NextResponse.json({ success: false, error: "Medicine scanning is not configured. Please contact support.", code: "API_ERROR", processingTimeMs }, { status: 503 });
+    }
+
+    if (error instanceof Error && "status" in error && (error.status === 503 || error.status === 429)) {
+      return NextResponse.json({ success: false, error: "The scanning service is temporarily busy. Please try again shortly.", code: "API_ERROR", processingTimeMs }, { status: 503 });
+    }
 
     if (message === "OCR_TIMEOUT") {
       const errResponse: OCRApiResponse = {

@@ -6,6 +6,7 @@
 
 # Build outputs
 /.next/
+/.next-dev/
 /out/
 /build
 .dist/
@@ -53,6 +54,7 @@ next-env.d.ts
 .cache/
 
 # Credentials & secrets
+/.opencode/omnirush/inbox/
 ocr-service/gcp-credentials.json
 
 # Reports

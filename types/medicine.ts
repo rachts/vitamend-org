@@ -1,3 +1,8 @@
+export interface MedicineIngredient {
+  ingredient: string;
+  strength: string | null;
+}
+
 export interface ExtractedMedicineDetails {
   medicineName: string | null;
   dosage: string | null;
@@ -5,6 +10,9 @@ export interface ExtractedMedicineDetails {
   expiryDate: string | null;
   manufacturer: string | null;
   mrp: string | null;
+  composition?: MedicineIngredient[];
+  manufacturingDate?: string | null;
+  packSize?: string | null;
 }
 
 export interface ValidationFieldError {

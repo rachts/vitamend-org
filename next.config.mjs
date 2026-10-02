@@ -1,5 +1,6 @@
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
+
 /** @type {import('next').NextConfig} */
-// Force restart to clear mongoose model cache
 const nextConfig = {
   // Had to disable strict mode because the scanner component 
   // mounts twice in dev and it was messing up the camera stream
@@ -114,4 +115,8 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+export default (phase) => ({
+  ...nextConfig,
+  // Keep the dev server's chunks separate from production builds and Docker output.
+  distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
+})

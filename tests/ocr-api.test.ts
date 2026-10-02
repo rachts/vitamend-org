@@ -65,7 +65,7 @@ describe("Next.js OCR API Route (/api/ocr)", () => {
     expect(json.code).toBe("UNSUPPORTED_FILE");
   });
 
-  it("returns 413 error when file exceeds 10 MB maximum allowance limit", async () => {
+  it("returns 413 for a substantially oversized upload", async () => {
     // Allocate an 11MB typed array wrapped as a standard File object
     const oversizedBuffer = new Uint8Array(11 * 1024 * 1024);
     const oversizedFile = new File([oversizedBuffer], "giant_scan.png", { type: "image/png" });
@@ -84,6 +84,19 @@ describe("Next.js OCR API Route (/api/ocr)", () => {
     expect(res.status).toBe(413);
     const json = await res.json();
     expect(json.success).toBe(false);
+    expect(json.code).toBe("LARGE_FILE");
+  });
+
+  it("rejects files above the 4 MB file limit reserved for multipart uploads", async () => {
+    const oversizedFile = new File([new Uint8Array(5 * 1024 * 1024)], "large.png", { type: "image/png" });
+    const formData = new FormData();
+    formData.append("image", oversizedFile);
+
+    const req = { formData: async () => formData, url: "http://localhost:3000/api/ocr", method: "POST", headers: new Headers() } as any;
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(413);
     expect(json.code).toBe("LARGE_FILE");
   });
 

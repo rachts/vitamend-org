@@ -43,7 +43,6 @@ export function LiveDemo() {
       setResult(ocrResult)
       setStatus("result")
     } catch (error: unknown) {
-      console.error(error)
       setErrorMessage((error as Error).message || "Failed to process image. Make sure the OCR backend is running.")
       setStatus("error")
     }

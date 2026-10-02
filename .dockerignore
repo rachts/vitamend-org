@@ -1,6 +1,8 @@
 node_modules
 npm-debug.log
 .next
+.next-dev
+.opencode/omnirush/inbox
 .git
 .env
 .env.local

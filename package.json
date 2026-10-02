@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,7 +11,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf .next out node_modules/.cache"
+    "clean": "rm -rf .next .next-dev out node_modules/.cache"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

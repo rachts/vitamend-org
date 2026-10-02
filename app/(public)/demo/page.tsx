@@ -35,6 +35,10 @@ export default function InvestorDemoPage() {
   const { toast } = useToast()
 
   const handleLiveScan = async (file: File) => {
+    if (file.size > 4 * 1024 * 1024) {
+      toast({ title: "Image is too large", description: "Please choose an image smaller than 4 MB.", variant: "destructive" })
+      return
+    }
     setIsScanning(true)
     setSelectedImage(URL.createObjectURL(file))
     const formData = new FormData()

@@ -26,10 +26,12 @@ export class OCRService {
    */
   static async processImage(file: File): Promise<OCRCheckResponse> {
     try {
+      if (file.size > 4 * 1024 * 1024) {
+        throw new Error("Please choose an image smaller than 4 MB.");
+      }
       const formData = new FormData();
-      // Send under 'image' per Gemini Next.js specification, and 'file' for backward compatibility
-      formData.append("image", file);
-      formData.append("file", file);
+       // The API accepts image; sending it once avoids doubling mobile upload bandwidth.
+       formData.append("image", file);
 
       const response = await fetch("/api/ocr", {
         method: "POST",
@@ -47,7 +49,6 @@ export class OCRService {
 
       return data;
     } catch (error: unknown) {
-      console.error("OCR Service Error:", error);
       throw error;
     }
   }

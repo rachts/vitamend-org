@@ -13,6 +13,8 @@ interface ParsedOcrData {
   manufacturer: string | null
   dosage?: string | null
   mrp?: string | null
+  manufacturingDate?: string | null
+  packSize?: string | null
 }
 
 interface ValidationResult {
@@ -41,6 +43,8 @@ const fields: { key: keyof ParsedOcrData; label: string; hint: string; required?
   { key: "expiryDate", label: "Expiry date", hint: "Usually MM/YYYY", required: true },
   { key: "manufacturer", label: "Manufacturer", hint: "Company printed on pack" },
   { key: "mrp", label: "MRP", hint: "Maximum retail price" },
+  { key: "manufacturingDate", label: "Manufacturing date", hint: "Printed MFD month/year" },
+  { key: "packSize", label: "Pack size", hint: "Printed number of capsules or tablets" },
 ]
 
 export default function TestOcrPage() {
@@ -70,8 +74,8 @@ export default function TestOcrPage() {
       toast({ title: "Please choose an image", description: "Upload a JPG, PNG, or WEBP photo of the packaging.", variant: "destructive" })
       return
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "Image is too large", description: "Please choose an image smaller than 10 MB.", variant: "destructive" })
+    if (file.size > 4 * 1024 * 1024) {
+      toast({ title: "Image is too large", description: "Please choose an image smaller than 4 MB.", variant: "destructive" })
       return
     }
     setSelectedFile(file)
@@ -152,7 +156,7 @@ export default function TestOcrPage() {
   }
 
   const confidence = result?.confidence || 0
-  const hasMissingRequired = fields.filter((field) => field.required).some((field) => !draft[field.key])
+  const hasMissingRequired = !result?.success || fields.filter((field) => field.required).some((field) => !draft[field.key])
   const needsReview = hasMissingRequired || confidence < 80 || Boolean(result?.validation?.errors?.length)
 
   return (
@@ -173,6 +177,8 @@ export default function TestOcrPage() {
         </div>
       </section>
 
+      {result?.error && <div role="alert" className="mx-auto mt-6 max-w-6xl rounded-lg border border-red-300 bg-red-50 p-5 text-red-900"><strong>Scan could not complete.</strong> {result.error} Your photo has not been verified. Try again when the service is available.</div>}
+      {result?.success && result.rawText && <details className="mx-auto mt-6 max-w-6xl rounded-lg border border-[var(--border)] p-5"><summary className="cursor-pointer font-semibold">Read the original label transcription</summary><pre className="mt-4 whitespace-pre-wrap break-words text-sm">{result.rawText}</pre></details>}
       <section className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5 shadow-[0_18px_50px_rgba(44,51,32,0.06)] sm:p-7">
           <div className="mb-5 flex items-center justify-between"><div><p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">Step 01</p><h2 className="mt-1 font-serif text-2xl">Show us the label</h2></div><ShieldCheck className="h-6 w-6 text-[var(--accent-dark)]" /></div>
