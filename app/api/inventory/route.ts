@@ -26,6 +26,7 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!["admin", "volunteer"].includes(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
@@ -80,6 +81,7 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!["admin", "volunteer"].includes(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
@@ -126,7 +128,7 @@ export async function POST(req: Request) {
       expiryDate: parsedExpiry,
       manufacturer: manufacturer ? String(manufacturer).trim() : undefined,
       location: location ? String(location).trim() : "Main Warehouse",
-      status: status || "available",
+      status: ["available", "reserved"].includes(String(status)) ? status : "available",
       donationId,
     });
 

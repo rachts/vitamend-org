@@ -92,19 +92,19 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-200 dark:border-neutral-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors;
   }
 
   .btn-primary-saas {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-teal-600 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition-colors;
   }
 
   .btn-secondary-saas {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-200 dark:border-neutral-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors;
   }
 
   .card-saas {
-    @apply bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-100 dark:border-neutral-800 p-6;
+    @apply bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-slate-100 dark:border-neutral-800 p-6;
   }
 
   .font-heading {

@@ -56,7 +56,7 @@ export default function ContactPage() {
     <div className="min-h-screen bg-[#F5F2EC] text-[#3E492B] font-sans pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Header Hero */}
-        <div className="rounded-3xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-12 shadow-sm text-center max-w-3xl mx-auto space-y-3">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-12 text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3E492B]/10 text-[#3E492B] text-xs font-semibold uppercase tracking-wider">
             <MessageSquare className="w-4 h-4" /> Contact & Support Portal
           </div>
@@ -71,7 +71,7 @@ export default function ContactPage() {
         {/* Main Grid: Form + Direct Contact Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Inquiry Form */}
-          <div className="lg:col-span-2 rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-6">
+          <div className="lg:col-span-2 rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-6">
             <div>
               <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
                 DIRECT INQUIRY
@@ -80,7 +80,7 @@ export default function ContactPage() {
             </div>
 
             {successNotice && (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+              <div className="p-4 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{successNotice}</span>
               </div>
@@ -123,7 +123,7 @@ export default function ContactPage() {
                     placeholder="e.g. Dr. Jane Smith"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
+                    className="w-full px-3.5 py-2.5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
                     required
                   />
                 </div>
@@ -133,10 +133,10 @@ export default function ContactPage() {
                   <input
                     type="email"
                     name="email"
-                    placeholder="name@example.com"
+                    placeholder="name@email.com"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
+                    className="w-full px-3.5 py-2.5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
                     required
                   />
                 </div>
@@ -149,7 +149,7 @@ export default function ContactPage() {
                     placeholder="+91 98765 43210"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
+                    className="w-full px-3.5 py-2.5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
                   />
                 </div>
 
@@ -161,7 +161,7 @@ export default function ContactPage() {
                     placeholder={`Regarding ${category}...`}
                     value={formData.subject}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
+                    className="w-full px-3.5 py-2.5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
                     required
                   />
                 </div>
@@ -175,7 +175,7 @@ export default function ContactPage() {
                   placeholder="How can our healthcare team assist you?"
                   value={formData.message}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
+                  className="w-full px-3.5 py-2.5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-[#3E492B] focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
                   required
                 />
               </div>
@@ -205,7 +205,7 @@ export default function ContactPage() {
 
           {/* Direct Contact Info Sidebar */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6 space-y-5">
+            <div className="rounded-lg border border-[#DDD8CF] bg-white p-6 space-y-5">
               <div>
                 <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
                   REACH US DIRECTLY
@@ -214,7 +214,7 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-4 text-xs">
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
+                <div className="flex items-start gap-3 p-3.5 rounded-md bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
                   <Mail className="w-4 h-4 text-[#3E492B] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-medium text-[#3E492B] block">Email Support</span>
@@ -224,7 +224,7 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
+                <div className="flex items-start gap-3 p-3.5 rounded-md bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
                   <MapPin className="w-4 h-4 text-[#3E492B] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-medium text-[#3E492B] block">Headquarters</span>
@@ -234,11 +234,11 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
+                <div className="flex items-start gap-3 p-3.5 rounded-md bg-[#F5F2EC]/50 border border-[#DDD8CF]/60">
                   <Clock className="w-4 h-4 text-[#3E492B] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-medium text-[#3E492B] block">Operating Hours</span>
-                    <span className="text-[#3E492B]/80">Mon – Sat: 09:00 AM – 07:00 PM IST</span>
+                    <span className="text-[#3E492B]/80">Mon - Sat: 09:00 AM - 07:00 PM IST</span>
                     <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 block mt-1 w-max">
                       Emergency Shortage Routing Active
                     </span>
@@ -248,11 +248,11 @@ export default function ContactPage() {
             </div>
 
             {/* Google Maps Location Placeholder */}
-            <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6 space-y-3">
+            <div className="rounded-lg border border-[#DDD8CF] bg-white p-6 space-y-3">
               <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
                 HQ LOCATION
               </span>
-              <div className="h-40 rounded-xl bg-[#F5F2EC] border border-[#DDD8CF] flex flex-col items-center justify-center text-center p-4 text-xs text-[#3E492B]/70">
+              <div className="h-40 rounded-md bg-[#F5F2EC] border border-[#DDD8CF] flex flex-col items-center justify-center text-center p-4 text-xs text-[#3E492B]/70">
                 <MapPin className="w-8 h-8 text-[#3E492B]/40 mb-2" />
                 <span className="font-serif font-medium text-[#3E492B] text-sm">New Delhi Logistics Center</span>
                 <span>Supply Chain & Verification Facility</span>

@@ -41,12 +41,12 @@ VitaMend closes this gap through a four-stage pipeline:
 
 ## Tech Stack
 
-- **Framework** — Next.js 14 (App Router, Server Components)
+- **Framework** — Next.js 15 (App Router, Server Components)
 - **Language** — TypeScript
 - **Styling** — Tailwind CSS
 - **Database** — MongoDB Atlas via Mongoose
 - **Auth** — Auth.js v5 (Credentials, JWT, RBAC)
-- **AI / OCR** — Google Gemini 1.5 Flash Vision
+- **AI / OCR** — Google Gemini 2.5 Flash Vision (configurable via `GEMINI_MODEL`)
 - **Rate Limiting** — Upstash Redis
 - **Validation** — Zod on all API inputs
 
@@ -109,6 +109,27 @@ npm run dev
 # → http://localhost:3000
 ```
 
+### Production checks
+
+Run the same checks used before deployment:
+
+```sh
+npm run type-check
+npm run lint
+npm test
+npm run build
+```
+
+The Dockerfile expects Next.js standalone output and can be built with:
+
+```sh
+docker build -t vitamend .
+docker run --env-file .env.local -p 3000:3000 vitamend
+```
+
+For a local MongoDB-backed stack, `docker compose up --build` supplies an
+internal MongoDB URI by default. Set `MONGODB_URI` explicitly when using Atlas.
+
 ### Environment Variables
 
 ```env
@@ -126,6 +147,11 @@ GEMINI_API_KEY=your-gemini-api-key
 # Rate Limiting
 UPSTASH_REDIS_REST_URL=https://your-url.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-token
+
+# Optional integrations
+RESEND_API_KEY=your-resend-api-key
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+BLOB_READ_WRITE_TOKEN=your-vercel-blob-token
 
 # CORS (production)
 ALLOWED_ORIGINS=https://vitamend.in

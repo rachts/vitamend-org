@@ -45,11 +45,22 @@ export default auth(function middleware(req) {
   }
 
   // Route protection
-  const isDashboard = nextUrl.pathname.startsWith("/dashboard");
+  const protectedRoutes = [
+    "/dashboard",
+    "/admin",
+    "/inventory",
+    "/settings",
+    "/profile",
+    "/platform",
+    "/notifications",
+    "/verification",
+  ];
+  const isProtected = protectedRoutes.some((route) => nextUrl.pathname.startsWith(route));
   const isAdmin = nextUrl.pathname.startsWith("/admin");
 
-  if ((isDashboard || isAdmin) && !session?.user) {
-    return NextResponse.redirect(new URL("/auth/signin", req.url));
+  if (isProtected && !session?.user) {
+    const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+    return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${callbackUrl}`, req.url));
   }
 
   if (isAdmin && session?.user?.role !== "admin") {

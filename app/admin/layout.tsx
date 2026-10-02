@@ -1,8 +1,14 @@
 import React from "react";
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import NavBar from "@/components/ui/NavBar";
 import Footer from "@/components/footer";
+
+export const metadata: Metadata = {
+  title: "Admin Portal",
+  description: "VitaMend administrative review, inventory management, and logistics operations.",
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();

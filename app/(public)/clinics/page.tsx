@@ -130,14 +130,14 @@ export default function ClinicsPage() {
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Notice Toast */}
         {submittedNotice && (
-          <div className="fixed top-20 right-6 z-50 bg-[#3E492B] text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 font-medium text-xs border border-[#DDD8CF]">
+          <div className="fixed top-20 right-6 z-50 bg-[#3E492B] text-white px-4 py-3 rounded-md flex items-center gap-2 font-medium text-xs border border-[#DDD8CF]">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>{submittedNotice}</span>
           </div>
         )}
 
         {/* Hero Section */}
-        <div className="rounded-3xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-12 shadow-sm relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-12 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="max-w-2xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3E492B]/10 text-[#3E492B] text-xs font-semibold uppercase tracking-wider">
               <Building2 className="w-4 h-4" /> Community Clinic Portal
@@ -163,7 +163,7 @@ export default function ClinicsPage() {
           </div>
 
           {/* Quick Stat Badge */}
-          <div className="w-full lg:w-80 rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC]/80 p-6 space-y-4">
+          <div className="w-full lg:w-80 rounded-lg border border-[#DDD8CF] bg-[#F5F2EC] p-6 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-[#3E492B]/70">
                 NETWORK STATUS
@@ -184,7 +184,7 @@ export default function ClinicsPage() {
         {/* Priority Queue & Live Allocations */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Priority Shortage Queue */}
-          <div className="lg:col-span-2 rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-6">
+          <div className="lg:col-span-2 rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#DDD8CF]">
               <div>
                 <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
@@ -205,7 +205,7 @@ export default function ClinicsPage() {
                 <Loader2 className="w-4 h-4 animate-spin" /> Loading shortage queue...
               </div>
             ) : queueItems.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-[#DDD8CF] rounded-xl bg-[#F5F2EC]/40 space-y-2">
+              <div className="p-8 text-center border border-dashed border-[#DDD8CF] rounded-md bg-[#F5F2EC]/40 space-y-2">
                 <Package className="w-8 h-8 text-[#3E492B]/40 mx-auto" />
                 <p className="font-serif text-base text-[#3E492B]">No Active Public Shortages in Queue</p>
                 <p className="text-xs text-[#3E492B]/70 max-w-md mx-auto">
@@ -215,7 +215,7 @@ export default function ClinicsPage() {
             ) : (
               <div className="space-y-3">
                 {queueItems.map((q, idx) => (
-                  <div key={q._id || idx} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div key={q._id || idx} className="p-4 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-serif text-base font-medium text-[#3E492B]">{q.clinicName}</span>
@@ -249,9 +249,9 @@ export default function ClinicsPage() {
           </div>
 
           {/* Partner Registration Card */}
-          <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-5 flex flex-col justify-between">
+          <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-5 flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#3E492B] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md bg-[#3E492B] text-white flex items-center justify-center">
                 <FileCheck className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-serif font-medium text-[#3E492B]">Register Your Clinic</h3>
@@ -273,7 +273,7 @@ export default function ClinicsPage() {
         </div>
 
         {/* Verification Protocol Diagram */}
-        <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-10 space-y-6">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-10 space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
               CLINICAL GUARANTEE
@@ -285,19 +285,19 @@ export default function ClinicsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 text-xs text-[#3E492B]/80">
-            <div className="p-5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-2">
+            <div className="p-5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-2">
               <ShieldCheck className="w-6 h-6 text-emerald-700" />
               <h4 className="font-serif text-base font-medium text-[#3E492B]">1. Factory Seal Audited</h4>
               <p className="leading-relaxed">Only intact, un-opened blister packs are approved. Loose pills are rejected instantly.</p>
             </div>
 
-            <div className="p-5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-2">
+            <div className="p-5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-2">
               <Clock className="w-6 h-6 text-[#3E492B]" />
               <h4 className="font-serif text-base font-medium text-[#3E492B]">2. 60+ Days Shelf Life</h4>
               <p className="leading-relaxed">Strict date filters ensure clinics have adequate time for patient prescription dispensing.</p>
             </div>
 
-            <div className="p-5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-2">
+            <div className="p-5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-2">
               <CheckCircle2 className="w-6 h-6 text-teal-700" />
               <h4 className="font-serif text-base font-medium text-[#3E492B]">3. Pharmacist Certified</h4>
               <p className="leading-relaxed">Secondary sign-off logged by a licensed pharmacist before dispatch code generation.</p>
@@ -307,8 +307,8 @@ export default function ClinicsPage() {
 
         {/* Modal: Report Urgent Requirement or Register Clinic */}
         {(isRequestModalOpen || isRegisterModalOpen) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-            <div className="w-full max-w-lg rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC] p-6 shadow-xl space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+            <div className="w-full max-w-lg rounded-lg border border-[#DDD8CF] bg-[#F5F2EC] p-6 space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between pb-3 border-b border-[#DDD8CF]">
                 <div>
                   <h3 className="text-lg font-serif font-medium text-[#3E492B]">
@@ -398,7 +398,7 @@ export default function ClinicsPage() {
                     <input
                       type="email"
                       name="email"
-                      placeholder="clinic@example.org"
+                      placeholder="clinic@health.gov.in"
                       value={reqForm.email}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 rounded-lg border border-[#DDD8CF] bg-white text-[#3E492B]"

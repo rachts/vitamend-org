@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Support both 'image' (per new production requirement) and 'file' (legacy compat)
-    const file = (formData.get("image") || formData.get("file")) as File | null;
+    const candidate = formData.get("image") || formData.get("file");
+    const file = candidate instanceof File ? candidate : null;
 
     if (!file) {
       const errorResponse: OCRApiResponse = {
@@ -70,18 +71,16 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Step 1: Send image buffer to Google Gemini OCR Engine with timeout
-    const ocrPromise = scanMedicineLabel(buffer, file.type || "image/jpeg");
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("OCR_TIMEOUT")), 15000)
-    );
-    
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const visionResult: any = await Promise.race([ocrPromise, timeoutPromise]);
-    
-    // Markdown-parsing logic for Gemini responses (if it returns markdown instead of JSON)
-    if (visionResult.rawText) {
-       visionResult.rawText = visionResult.rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-    }
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("OCR_TIMEOUT")), 15000);
+    });
+    const visionResult = await Promise.race([
+      scanMedicineLabel(buffer, file.type || "image/jpeg"),
+      timeoutPromise,
+    ]).finally(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+    });
 
     if (!visionResult.rawText || visionResult.rawText.trim().length === 0) {
       const errResponse: OCRApiResponse = {
@@ -93,7 +92,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(errResponse, { status: 422 });
     }
 
-    const confidencePercentage = typeof visionResult.confidence === "number" ? visionResult.confidence : 85;
+    const rawConfidence = typeof visionResult.confidence === "number" && Number.isFinite(visionResult.confidence)
+      ? visionResult.confidence
+      : 0;
+    const confidencePercentage = Math.max(0, Math.min(100, rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence));
     const isBlurred = confidencePercentage < 60;
 
     if (confidencePercentage < 40) {
@@ -127,16 +129,17 @@ export async function POST(req: NextRequest) {
         visionResult.extracted.manufacturer ||
         visionResult.extracted.mrp);
 
+    const parsedFromText = extractMedicineInfo(visionResult.rawText);
     const extracted = hasExtractedFields
       ? {
-          medicineName: visionResult.extracted.medicineName || null,
-          dosage: visionResult.extracted.dosage || null,
-          batchNumber: visionResult.extracted.batchNumber || null,
-          expiryDate: visionResult.extracted.expiryDate || null,
-          manufacturer: visionResult.extracted.manufacturer || null,
-          mrp: visionResult.extracted.mrp || null,
+          medicineName: visionResult.extracted.medicineName || parsedFromText.medicineName,
+          dosage: visionResult.extracted.dosage || parsedFromText.dosage,
+          batchNumber: visionResult.extracted.batchNumber || parsedFromText.batchNumber,
+          expiryDate: visionResult.extracted.expiryDate || parsedFromText.expiryDate,
+          manufacturer: visionResult.extracted.manufacturer || parsedFromText.manufacturer,
+          mrp: visionResult.extracted.mrp || parsedFromText.mrp,
         }
-      : extractMedicineInfo(visionResult.rawText);
+      : parsedFromText;
 
     // Step 3: Validate extracted medicine details against regulatory rules
     const validation = validateMedicineDetails(extracted);

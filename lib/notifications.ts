@@ -49,7 +49,7 @@ export async function sendNotification({
                 ${message}
               </p>
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd8cf; font-size: 12px; color: #a0aec0;">
-                <p>VitaMend — Redefining the lifecycle of care.</p>
+                <p>VitaMend. Redefining the lifecycle of care.</p>
               </div>
             </div>
           </div>

@@ -80,16 +80,16 @@ export default async function PublicStorePage() {
     <div className="min-h-screen bg-[#F5F2EC] text-[#3E492B] font-sans pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Hero Banner */}
-        <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-10 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="rounded-lg border border-[#D8D2C4] bg-white p-8 sm:p-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3E492B]/10 text-[#3E492B] text-xs font-semibold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4" /> Live Surplus Registry
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#EDE9DF] text-[#1C1A14] text-xs font-semibold uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4 text-[#2C3320]" /> Available Medicines Catalog
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-[#3E492B]">
-              Verified Essential Medicines Store
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-[#1C1A14]">
+              Verified Essential Medicines
             </h1>
-            <p className="text-base sm:text-lg text-[#3E492B]/80 leading-relaxed font-sans">
-              Real-time inventory of OCR-scanned, pharmacist-verified surplus pharmaceuticals available for immediate dispatch to partner clinics.
+            <p className="text-base text-[#5C5545] leading-relaxed font-sans">
+              Real-time inventory of OCR-scanned, pharmacist-verified surplus pharmaceuticals available for allocation to partner health clinics.
             </p>
             <div className="pt-1 flex flex-wrap gap-2">
               <TrustBadge variant="ai" size="sm" />
@@ -99,28 +99,28 @@ export default async function PublicStorePage() {
           </div>
 
           <div className="w-full md:w-auto shrink-0 flex flex-col items-center md:items-end gap-2">
-            <Link href="/clinics#request" className="btn-primary text-xs px-5 py-3 flex items-center gap-2">
+            <Link href="/clinics#request" className="bg-[#2C3320] text-white text-xs px-5 py-2.5 rounded-md hover:bg-[#3D4A2E] transition-colors flex items-center gap-2">
               Request Clinic Allocation <ArrowRight className="w-4 h-4" />
             </Link>
-            <span className="text-[11px] font-mono text-[#3E492B]/60">SORTED BY NEAREST EXPIRY</span>
+            <span className="text-[11px] font-mono text-[#5C5545]">Sorted by nearest expiry</span>
           </div>
         </div>
 
         {/* Inventory Store Cards */}
         {inventory.length === 0 ? (
-          <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-16 text-center space-y-5 max-w-2xl mx-auto my-12">
-            <div className="w-16 h-16 rounded-full bg-[#F5F2EC] flex items-center justify-center mx-auto text-[#3E492B]/40 border border-[#DDD8CF]">
-              <Package className="w-8 h-8" />
+          <div className="rounded-lg border border-[#D8D2C4] bg-white p-12 text-center space-y-5 max-w-2xl mx-auto my-12">
+            <div className="w-14 h-14 rounded-md bg-[#EDE9DF] flex items-center justify-center mx-auto text-[#2C3320] border border-[#D8D2C4]">
+              <Package className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-serif font-medium text-[#3E492B]">No Available Stock Found</h2>
-              <p className="text-sm text-[#3E492B]/70 mt-2 max-w-md mx-auto leading-relaxed">
-                All donated medicines have been dispatched to partner clinics. Be the first to donate surplus stock to replenish our community supply.
+              <h2 className="text-2xl font-serif text-[#1C1A14]">No Available Stock Currently</h2>
+              <p className="text-sm text-[#5C5545] mt-2 max-w-md mx-auto leading-relaxed">
+                All previously verified medicines have been dispatched to community clinics. You can donate unexpired surplus to replenish the inventory.
               </p>
             </div>
             <div className="pt-2">
-              <Link href="/donate" className="btn-primary inline-flex items-center gap-2 text-sm px-6 py-3">
-                Donate Surplus Medicine <ArrowRight className="w-4 h-4" />
+              <Link href="/donate" className="bg-[#2C3320] text-white hover:bg-[#3D4A2E] inline-flex items-center gap-2 text-sm px-5 py-2.5 rounded-md transition-colors">
+                Donate a Medicine <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default async function PublicStorePage() {
               return (
                 <div
                   key={item._id}
-                  className="rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200"
+                  className="rounded-md border border-[#D8D2C4] bg-white p-6 flex flex-col justify-between transition-colors"
                 >
                   <div className="space-y-4">
                     {/* Header Badge */}

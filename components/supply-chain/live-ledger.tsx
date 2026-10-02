@@ -22,7 +22,7 @@ export default function LiveLedger() {
 
   return (
     <div className="absolute top-24 left-6 w-80 max-h-[70vh] overflow-hidden flex flex-col gap-4 z-10">
-      <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-2xl">
+      <div className="bg-[#1C1A14] border border-white/10 rounded-md p-4">
         <h2 className="text-sm font-semibold tracking-widest uppercase text-white/80 mb-4 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           Live Network Activity
@@ -40,7 +40,7 @@ export default function LiveLedger() {
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.4 }}
-                className="relative z-10 flex gap-4 bg-white/5 border border-white/5 p-3 rounded-lg backdrop-blur-sm shadow-xl"
+                className="relative z-10 flex gap-4 bg-white/5 border border-white/10 p-3 rounded-md"
               >
                 <div className="mt-0.5 bg-black/50 p-1.5 rounded-full ring-1 ring-white/10 shrink-0 self-start">
                   {getEventIcon(event.type)}

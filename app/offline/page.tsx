@@ -7,7 +7,7 @@ import Link from "next/link"
 
 export default function OfflinePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8faf8] to-[#f8faff] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F2EC] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <WifiOff className="mx-auto h-12 w-12 text-[#2ea043] mb-4" />

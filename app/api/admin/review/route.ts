@@ -77,15 +77,22 @@ export async function POST(req: Request) {
     }
     // Process corrections if any
     if (correctedData) {
+      if (typeof correctedData !== "object" || Array.isArray(correctedData)) {
+        return NextResponse.json({ error: "Invalid corrected data" }, { status: 400 });
+      }
+      const allowedCorrectionFields = ["name", "genericName", "dosage", "batchNumber", "manufacturer", "expiryDate"];
+      const safeCorrections = Object.fromEntries(
+        Object.entries(correctedData).filter(([key, value]) => allowedCorrectionFields.includes(key) && typeof value === "string" && value.length <= 300)
+      );
       await AILearningDataset.create({
         medicineId,
         originalPrediction: medicine.verificationResult?.extractedData,
-        correctedPrediction: correctedData,
+        correctedPrediction: safeCorrections,
         correctionType: "classification",
         correctedBy: session.user.id,
       });
       // Apply corrections to medicine record
-      Object.assign(medicine, correctedData);
+      Object.assign(medicine, safeCorrections);
     }
     medicine.status = decision;
     medicine.reviewNotes = notes;

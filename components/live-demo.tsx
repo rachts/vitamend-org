@@ -64,20 +64,20 @@ export function LiveDemo() {
   const isApproved = result && !result.expired && !result.tampered && !result.needs_review
 
   return (
-    <div className="w-full max-w-5xl mx-auto glass-panel border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm bg-surface-container-lowest">
+    <div className="w-full max-w-5xl mx-auto border border-[#DDD8CF] rounded-lg overflow-hidden bg-white">
       <div className="grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side: Scanner / Upload */}
         <div 
-          className="relative p-6 lg:p-10 bg-surface-container-lowest border-b lg:border-b-0 lg:border-r border-outline-variant/20 flex flex-col items-center justify-center min-h-[400px]"
+          className="relative p-6 lg:p-10 bg-white border-b lg:border-b-0 lg:border-r border-[#DDD8CF] flex flex-col items-center justify-center min-h-[400px]"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
         >
           {status === "idle" ? (
             <div 
-              className="w-full h-full min-h-[300px] border-2 border-dashed border-outline-variant/50 rounded-2xl flex flex-col items-center justify-center bg-surface hover:bg-surface-container-low transition-colors cursor-pointer group"
+              className="w-full h-full min-h-[300px] border-2 border-dashed border-[#DDD8CF] rounded-lg flex flex-col items-center justify-center bg-[#F5F2EC]/40 hover:bg-[#F5F2EC]/70 transition-colors cursor-pointer group"
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="bg-primary-container text-on-primary-container p-4 rounded-full mb-4 group-hover:scale-110 transition-transform">
+              <div className="bg-[#3E492B]/10 text-[#3E492B] p-4 rounded-full mb-4 group-hover:scale-105 transition-transform">
                 <UploadCloud size={32} />
               </div>
               <h4 className="font-headline-sm text-on-surface mb-2">Upload Medicine Photo</h4>
@@ -93,7 +93,7 @@ export function LiveDemo() {
               />
             </div>
           ) : (
-            <div className="relative w-full max-w-sm aspect-[4/5] rounded-2xl overflow-hidden shadow-inner bg-black/5">
+            <div className="relative w-full max-w-sm aspect-[4/5] rounded-lg overflow-hidden bg-black/5 border border-[#DDD8CF]">
               {previewUrl && (
                 <Image width={500} height={500} unoptimized 
                   loading="lazy"
@@ -115,24 +115,24 @@ export function LiveDemo() {
               )}
 
               {status === "result" && result && (
-                <div className="absolute inset-0 flex items-center justify-center bg-surface/40 backdrop-blur-sm p-4 text-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 p-4 text-center">
                   {isApproved ? (
-                    <div className="flex flex-col items-center gap-3 bg-green-500/10 p-6 rounded-2xl shadow-lg border border-green-500/20 backdrop-blur-md">
+                    <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg border border-green-500/40">
                       <ShieldCheck className="w-16 h-16 text-green-600" />
                       <span className="font-headline-sm text-green-700 font-bold">Verified Authentic</span>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-3 bg-error/10 p-6 rounded-2xl shadow-lg border border-error/20 backdrop-blur-md">
-                      <ShieldAlert className="w-16 h-16 text-error" />
-                      <span className="font-headline-sm text-error font-bold">Unsafe / Needs Review</span>
+                    <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg border border-red-500/40">
+                      <ShieldAlert className="w-16 h-16 text-red-600" />
+                      <span className="font-headline-sm text-red-700 font-bold">Unsafe / Needs Review</span>
                     </div>
                   )}
                 </div>
               )}
 
               {status === "error" && (
-                <div className="absolute inset-0 flex items-center justify-center bg-surface/80 backdrop-blur-sm p-4 text-center">
-                  <div className="flex flex-col items-center gap-3 bg-error/10 p-6 rounded-2xl shadow-lg border border-error/20">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 p-4 text-center">
+                  <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg border border-red-500/40">
                     <X className="w-12 h-12 text-error" />
                     <span className="font-headline-sm text-error font-bold">Processing Failed</span>
                     <p className="text-sm text-error/80">{errorMessage}</p>

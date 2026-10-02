@@ -9,6 +9,73 @@ const getGenAI = () => {
   );
 };
 
+export interface GeminiOcrFields {
+  medicineName: string | null;
+  dosage: string | null;
+  batchNumber: string | null;
+  expiryDate: string | null;
+  manufacturer: string | null;
+  mrp: string | null;
+  confidence: number;
+}
+
+function findJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const character = text[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === '"') inString = false;
+      continue;
+    }
+    if (character === '"') inString = true;
+    else if (character === "{") depth += 1;
+    else if (character === "}" && --depth === 0) return text.slice(start, index + 1);
+  }
+  return null;
+}
+
+function nullableText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized.length > 0 && normalized.toLowerCase() !== "null" ? normalized : null;
+}
+
+/** Parse and constrain model output before it reaches the API response. */
+export function parseGeminiOcrResponse(text: string): GeminiOcrFields {
+  const json = findJsonObject(text);
+  if (!json) throw new Error("OCR returned unparseable output");
+
+  let value: Record<string, unknown>;
+  try {
+    const parsed: unknown = JSON.parse(json);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
+    value = parsed as Record<string, unknown>;
+  } catch {
+    throw new Error("OCR returned unparseable output");
+  }
+
+  const rawConfidence = typeof value.confidence === "number" && Number.isFinite(value.confidence)
+    ? value.confidence
+    : 0;
+
+  return {
+    medicineName: nullableText(value.medicineName),
+    dosage: nullableText(value.dosage),
+    batchNumber: nullableText(value.batchNumber),
+    expiryDate: nullableText(value.expiryDate),
+    manufacturer: nullableText(value.manufacturer),
+    mrp: nullableText(value.mrp),
+    confidence: Math.max(0, Math.min(100, rawConfidence)),
+  };
+}
+
 export async function scanMedicineLabel(
   imageBuffer: Buffer,
   mimeType: string = "image/jpeg"
@@ -97,31 +164,7 @@ Plot No. 44, Industrial Area, Mumbai 400001`;
   const response = await result.response;
   const text = response.text();
   
-  interface RawOcrExtracted {
-    medicineName?: string | null;
-    dosage?: string | null;
-    batchNumber?: string | null;
-    expiryDate?: string | null;
-    manufacturer?: string | null;
-    mrp?: string | null;
-    confidence?: number | null;
-  }
-
-  let extracted: RawOcrExtracted;
-  try {
-    extracted = JSON.parse(text);
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      try {
-        extracted = JSON.parse(match[0]);
-      } catch {
-        throw new Error("OCR returned unparseable output");
-      }
-    } else {
-      throw new Error("OCR returned unparseable output");
-    }
-  }
+  const extracted = parseGeminiOcrResponse(text);
 
   const rawText = [
     extracted.medicineName,

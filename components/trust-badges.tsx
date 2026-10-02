@@ -9,36 +9,36 @@ export interface TrustBadgeProps {
 
 export function TrustBadge({ variant = "ai", className = "", size = "md" }: TrustBadgeProps) {
   const sizeClasses = {
-    sm: "px-2 py-0.5 text-[10px] gap-1",
-    md: "px-2.5 py-1 text-xs gap-1.5",
-    lg: "px-3 py-1.5 text-xs font-medium gap-2",
+    sm: "px-2.5 py-1 text-[11px] gap-1.5",
+    md: "px-3 py-1.5 text-xs gap-1.5",
+    lg: "px-3.5 py-2 text-xs font-medium gap-2",
   };
 
   const badgeConfigs = {
     ai: {
-      label: "AI OCR Verified",
+      label: "AI-Assisted Label Intake",
       icon: ShieldCheck,
-      color: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      color: "bg-[#EDE9DF] text-[#1C1A14] border-[#D8D2C4]",
     },
     pharmacist: {
-      label: "Licensed Pharmacist Approved",
+      label: "Licensed Pharmacist Inspection",
       icon: UserCheck,
-      color: "bg-[#3E492B]/10 text-[#3E492B] border-[#3E492B]/20",
+      color: "bg-[#EDE9DF] text-[#1C1A14] border-[#D8D2C4]",
     },
     encrypted: {
-      label: "256-bit Encrypted Ledger",
+      label: "Encrypted Database Storage",
       icon: Lock,
-      color: "bg-amber-50 text-amber-800 border-amber-200",
+      color: "bg-[#EDE9DF] text-[#1C1A14] border-[#D8D2C4]",
     },
     cdsco: {
-      label: "CDSCO Guidelines Compliant",
+      label: "Aligned with CDSCO Guidelines",
       icon: Award,
-      color: "bg-blue-50 text-blue-800 border-blue-200",
+      color: "bg-[#EDE9DF] text-[#1C1A14] border-[#D8D2C4]",
     },
     temperature: {
-      label: "Cold-Chain Temperature Monitored",
+      label: "Documented Storage Conditions",
       icon: Thermometer,
-      color: "bg-teal-50 text-teal-800 border-teal-200",
+      color: "bg-[#EDE9DF] text-[#1C1A14] border-[#D8D2C4]",
     },
   };
 
@@ -47,9 +47,9 @@ export function TrustBadge({ variant = "ai", className = "", size = "md" }: Trus
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-sans font-medium transition-all ${sizeClasses[size]} ${config.color} ${className}`}
+      className={`inline-flex items-center rounded-md border font-sans font-medium transition-colors ${sizeClasses[size]} ${config.color} ${className}`}
     >
-      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <Icon className="w-3.5 h-3.5 shrink-0 text-[#2C3320]" />
       <span>{config.label}</span>
     </span>
   );

@@ -278,7 +278,7 @@ export default function InvestorDemoPage() {
                         <CheckCircle2 className="h-4 w-4" /> Optical Extraction Success ({scannedData.confidence}% Confidence)
                       </span>
                       <p className="text-xs text-[#047857] font-body">
-                        Parameters structured instantly. Proceed to Step 3 to review automated CDSCO safety validation.
+                        Parameters structured instantly. Proceed to Step 3 to review automated safety validation checks.
                       </p>
                     </div>
                     <button
@@ -303,7 +303,7 @@ export default function InvestorDemoPage() {
                 <p className="text-xs text-[#64748B]">Instantaneous algorithmic verification against clinical discard thresholds and batch registry structures.</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-[#F0FDFA] border border-[#A7F3D0] text-[#0F766E] font-mono text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                <ShieldCheck className="h-4 w-4" /> CDSCO SAFETY VALIDATED
+                <ShieldCheck className="h-4 w-4" /> SAFETY CHECKS VALIDATED
               </span>
             </div>
 
@@ -338,7 +338,7 @@ export default function InvestorDemoPage() {
                       <CheckCircle2 className="h-4 w-4 shrink-0" /> Expiration exceeds 60-day safety margin (608 days remaining)
                     </li>
                     <li className="flex items-center gap-2 text-[#0F766E] font-medium">
-                      <CheckCircle2 className="h-4 w-4 shrink-0" /> Manufacturer verified against legitimate CDSCO registry
+                      <CheckCircle2 className="h-4 w-4 shrink-0" /> Manufacturer and batch format verified against safety guidelines
                     </li>
                     <li className="flex items-center gap-2 text-[#0F766E] font-medium">
                       <CheckCircle2 className="h-4 w-4 shrink-0" /> Optical extraction confidence score (96%) above human audit threshold

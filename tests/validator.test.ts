@@ -103,4 +103,16 @@ describe("Expiry Date Parsing Helpers", () => {
     expect(date?.getFullYear()).toBe(2027);
     expect(date?.getMonth()).toBe(10);
   });
+
+  it("rejects impossible calendar dates instead of allowing JavaScript rollover", () => {
+    expect(parseExpiryToDate("31/02/2027")).toBeNull();
+  });
+
+  it("returns field-level errors for malformed runtime input", () => {
+    const result = validateMedicineDetails(null as unknown as ExtractedMedicineDetails);
+    expect(result.isValid).toBe(false);
+    expect(result.errors.map((error) => error.field)).toEqual(
+      expect.arrayContaining(["medicineName", "batchNumber", "expiryDate"])
+    );
+  });
 });

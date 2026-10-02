@@ -107,4 +107,16 @@ describe("Next.js OCR API Route (/api/ocr)", () => {
     expect(json.success).toBe(false);
     expect(json.code).toBe("BLURRED_IMAGE");
   });
+
+  it("rejects a non-file multipart field without throwing a server error", async () => {
+    const formData = new FormData();
+    formData.append("image", "not-an-image");
+
+    const req = { formData: async () => formData, url: "http://localhost:3000/api/ocr", method: "POST", headers: new Headers() } as any;
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("INVALID_REQUEST");
+  });
 });

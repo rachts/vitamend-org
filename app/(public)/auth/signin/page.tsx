@@ -1,8 +1,7 @@
 "use client"
 
-import Image from "next/image";
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 
@@ -12,13 +11,8 @@ export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,8 +39,6 @@ export default function SignIn() {
     }
   }
 
-  if (!mounted) return null
-
   return (
     <div className="min-h-screen flex">
       {/* Left Panel: Form */}
@@ -66,6 +58,7 @@ export default function SignIn() {
 
           <form onSubmit={handleSubmit} className="flex flex-col">
             <div className="flex flex-col gap-[28px] mb-8">
+              <label htmlFor="email" className="sr-only">Email address</label>
               <input
                 id="email"
                 type="email"
@@ -78,6 +71,7 @@ export default function SignIn() {
               />
               
               <div className="relative flex flex-col">
+                <label htmlFor="password" className="sr-only">Password</label>
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -148,23 +142,17 @@ export default function SignIn() {
         </div>
       </div>
 
-      {/* Right Panel: Atmospheric Image */}
-      <div className="hidden md:block md:w-[45%] relative bg-[var(--bg-secondary)] overflow-hidden">
-        <Image width={500} height={500} unoptimized 
-          src="/test-image.jpg" 
-          alt="Atmospheric healthcare background" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(20,18,16,0.7)] to-[rgba(20,18,16,0.1)] dark:from-[rgba(10,9,7,0.8)] dark:to-[rgba(10,9,7,0.2)]"></div>
-        
-        {/* Quote */}
-        <div className="absolute bottom-0 left-0 p-[48px]">
-          <p className="font-serif italic text-[1.5rem] text-[#F0EDE5] leading-[1.4] mb-2">
-            &quot;Bridging the gap between unused medicines and people in need.&quot;
+      {/* Right Panel: Editorial Brand Panel */}
+      <div className="hidden md:flex md:w-[45%] relative bg-[#2C3320] text-[#EDE9DF] p-12 flex-col justify-between">
+        <div>
+          <span className="text-xs font-mono tracking-widest text-[#A89F91] uppercase">VitaMend Network</span>
+        </div>
+        <div className="space-y-4">
+          <p className="font-serif italic text-2xl text-[#F5F2EC] leading-relaxed">
+            &quot;Bridging the gap between surplus medicines and underserved communities.&quot;
           </p>
-          <p className="font-sans text-[0.75rem] text-[rgba(240,237,229,0.6)] tracking-[0.1em] uppercase">
-            — Vitamend
+          <p className="text-xs font-mono text-[#A89F91]">
+            Verified non-profit pharmaceutical redistribution
           </p>
         </div>
       </div>

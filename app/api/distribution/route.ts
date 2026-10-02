@@ -13,11 +13,12 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!["admin", "volunteer"].includes(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Math.max(1, Math.min(100000, Number.parseInt(searchParams.get("page") || "1", 10) || 1));
+    const limit = Math.max(1, Math.min(100, Number.parseInt(searchParams.get("limit") || "10", 10) || 10));
 
     await connectMongoose();
 
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { inventoryId, recipientType, recipientId, recipientName, quantity, notes } = body;
 
-    if (!inventoryId || !recipientType || !recipientName || !quantity) {
+    if (!inventoryId || !recipientType || typeof recipientName !== "string" || recipientName.length > 200 || !Number.isInteger(quantity) || quantity < 1 || quantity > 100000) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -162,7 +163,7 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { distributionId, status, deliveryProof } = body;
 
-    if (!distributionId || !status) {
+    if (!distributionId || !["pending", "in_transit", "delivered", "cancelled"].includes(status) || (deliveryProof !== undefined && (typeof deliveryProof !== "string" || deliveryProof.length > 2000))) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 

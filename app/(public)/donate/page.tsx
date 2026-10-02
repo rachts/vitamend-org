@@ -5,8 +5,9 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
-  title: "Donate Surplus Medicines | Vitamend",
-}
+  title: "Donate Medicines",
+  description: "Submit unused, unexpired medicines for pharmacist verification and clinic redistribution.",
+};
 
 function OcrLoadingFallback() {
   return (

@@ -1,31 +1,45 @@
 import type React from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import { DM_Sans, DM_Serif_Display } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Providers from "./providers";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
-const fontBody = Inter({
+const fontBody = DM_Sans({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
 });
 
-const fontDisplay = Cormorant_Garamond({
+const fontDisplay = DM_Serif_Display({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400"],
   variable: "--font-display",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || "https://vitamend.in"),
-  title: { default: "VitaMend — Medicine Redistribution Platform", template: "%s | VitaMend" },
-  description: "VitaMend scans medicine labels, verifies expiry dates, and routes surplus stock to clinics reporting shortages.",
-  keywords: ["medicine redistribution", "surplus medicine", "healthcare platform", "OCR medicine scanning", "NGO medicine donation", "CDSCO compliant"],
+  title: {
+    default: "VitaMend | Donate Unused Medicines, Help Someone in Need",
+    template: "%s | VitaMend",
+  },
+  description:
+    "Donate unused, unexpired medicines to verified clinics and NGOs. AI-assisted label scanning helps ensure safe redistribution to patients in need.",
+  keywords: [
+    "medicine donation",
+    "medicine redistribution",
+    "surplus medicine",
+    "healthcare platform",
+    "OCR medicine scanning",
+    "NGO medicine donation",
+  ],
   openGraph: {
-    title: "VitaMend — Medicine Redistribution Platform",
-    description: "Scan medicine labels, verify expiry dates, route surplus stock to clinics in need.",
+    title: "VitaMend | Donate Unused Medicines, Help Someone in Need",
+    description:
+      "Donate unused, unexpired medicines to verified clinics and NGOs. AI-assisted label scanning helps ensure safe redistribution to patients in need.",
     type: "website",
     locale: "en_IN",
     url: "https://vitamend.in",
@@ -33,18 +47,22 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "VitaMend",
-    description: "Medicine redistribution built for NGOs, hospitals, and pharmacies.",
+    title: "VitaMend | Donate Unused Medicines, Help Someone in Need",
+    description:
+      "Donate unused, unexpired medicines to verified clinics and NGOs. AI-assisted label scanning helps ensure safe redistribution to patients in need.",
   },
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
   },
   manifest: "/manifest.json",
   category: "Healthcare",
 };
 
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#0F766E" }],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#2C3320" }],
   width: "device-width",
   initialScale: 1,
   colorScheme: "light dark",
@@ -53,17 +71,18 @@ export const viewport: Viewport = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "NGO",
-  "name": "VitaMend Healthcare Foundation",
+  "name": "VitaMend Healthcare Platform",
   "alternateName": "VitaMend",
   "url": "https://vitamend.in",
   "logo": "https://vitamend.in/icon.svg",
-  "description": "AI-powered pharmaceutical redistribution platform bridging surplus medicine with community health clinics.",
+  "description":
+    "Pharmaceutical redistribution platform connecting unused surplus medicines with community health clinics and verified NGOs.",
   "contactPoint": {
     "@type": "ContactPoint",
-    "contactType": "customer service",
+    "contactType": "support",
     "email": "contact@vitamend.in",
-    "availableLanguage": ["English", "Hindi"]
-  }
+    "availableLanguage": ["English", "Hindi"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -75,11 +94,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="antialiased font-body">
+      <body className="antialiased font-body min-h-screen overflow-x-hidden bg-[#F5F2EC] text-[#1C1A14]">
         <Providers>
           {children}
           <Toaster />
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

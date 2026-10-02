@@ -186,10 +186,10 @@ export default function LivingSupplyChainPage() {
 
         {/* Title Overlay */}
         <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center pointer-events-auto">
-          <h1 className="text-3xl font-serif tracking-tight text-white/90 drop-shadow-xl">
+          <h1 className="text-3xl font-serif tracking-tight text-white/90">
             The Living Supply Chain
           </h1>
-          <p className="text-sm font-medium text-emerald-400/90 tracking-widest uppercase mt-2 drop-shadow-md">
+          <p className="text-sm font-medium text-emerald-400 tracking-widest uppercase mt-2">
             Live Network Visualization
           </p>
         </div>

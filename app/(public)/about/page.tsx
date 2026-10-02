@@ -20,7 +20,7 @@ import {
 export const metadata: Metadata = {
   title: "About VitaMend | Mission, Team & Healthcare Governance",
   description:
-    "Learn about VitaMend's AI-driven pharmaceutical redistribution platform, our leadership team, medical advisory board, and CDSCO compliance standards.",
+    "Learn about VitaMend's AI-driven pharmaceutical redistribution platform, our leadership team, medical advisory board, and medicine safety guidelines.",
 };
 
 const leadershipTeam = [
@@ -52,7 +52,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-[#F5F2EC] text-[#3E492B] font-sans pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-16">
         {/* Hero Section */}
-        <div className="rounded-3xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-12 shadow-sm space-y-6 text-center max-w-4xl mx-auto">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-12 space-y-6 text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3E492B]/10 text-[#3E492B] text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-[#3E492B]" /> About VitaMend Foundation
           </div>
@@ -72,8 +72,8 @@ export default function AboutPage() {
 
         {/* Mission & Vision Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#3E492B] text-white flex items-center justify-center">
+          <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-4">
+            <div className="w-12 h-12 rounded-md bg-[#3E492B] text-white flex items-center justify-center">
               <Target className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-serif font-medium text-[#3E492B]">Our Mission</h2>
@@ -82,8 +82,8 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#3E492B] text-white flex items-center justify-center">
+          <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-4">
+            <div className="w-12 h-12 rounded-md bg-[#3E492B] text-white flex items-center justify-center">
               <Heart className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-serif font-medium text-[#3E492B]">Our Vision</h2>
@@ -94,7 +94,7 @@ export default function AboutPage() {
         </div>
 
         {/* Story & Core Values */}
-        <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-10 space-y-8">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-10 space-y-8">
           <div className="max-w-3xl space-y-3">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
               ORIGIN STORY
@@ -128,7 +128,7 @@ export default function AboutPage() {
         </div>
 
         {/* Verification Workflow Diagram */}
-        <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-10 space-y-6">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-10 space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
               SECURITY ARCHITECTURE
@@ -146,7 +146,7 @@ export default function AboutPage() {
               { step: "03", title: "Pharmacist Sign-Off", desc: "Licensed pharmacist reviews physical packaging integrity & batch lot.", icon: UserCheck },
               { step: "04", title: "Priority Dispatch", desc: "Automated routing to verified clinics based on deficit urgency.", icon: Building2 },
             ].map((s) => (
-              <div key={s.step} className="p-5 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-3">
+              <div key={s.step} className="p-5 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/50 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-[#3E492B] bg-white px-2 py-0.5 rounded border border-[#DDD8CF]">
                     STEP {s.step}
@@ -174,9 +174,9 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {leadershipTeam.map((member) => (
-              <div key={member.name} className="rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6 flex flex-col justify-between space-y-4">
+              <div key={member.name} className="rounded-lg border border-[#DDD8CF] bg-white p-6 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
-                  <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-[#F5F2EC] border border-[#DDD8CF] flex items-center justify-center">
+                  <div className="relative w-full aspect-square rounded-md overflow-hidden bg-[#F5F2EC] border border-[#DDD8CF] flex items-center justify-center">
                     {member.image ? (
                       <Image
                         src={member.image}
@@ -219,7 +219,7 @@ export default function AboutPage() {
         {/* Medical Advisory Board & Partners */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Medical Advisors */}
-          <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-6">
+          <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-6">
             <div>
               <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
                 CLINICAL ADVISORY
@@ -229,12 +229,12 @@ export default function AboutPage() {
 
             <div className="space-y-4">
               {medicalAdvisors.length === 0 ? (
-                <div className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-xs text-[#3E492B]/70 italic">
+                <div className="p-4 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-xs text-[#3E492B]/70 italic">
                   Advisory panel onboarding in progress. Formal advisory agreements are currently being finalized.
                 </div>
               ) : (
                 medicalAdvisors.map((adv) => (
-                  <div key={adv.name} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 space-y-1">
+                  <div key={adv.name} className="p-4 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 space-y-1">
                     <h4 className="font-serif text-base font-medium text-[#3E492B]">{adv.name}</h4>
                     <p className="text-xs text-[#3E492B]/80">{adv.specialty}</p>
                     <p className="text-[11px] font-mono text-[#3E492B]/60">{adv.institution}</p>
@@ -245,7 +245,7 @@ export default function AboutPage() {
           </div>
 
           {/* Partner Organizations */}
-          <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 space-y-6">
+          <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 space-y-6">
             <div>
               <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
                 ECOSYSTEM PARTNERS
@@ -255,12 +255,12 @@ export default function AboutPage() {
 
             <div className="space-y-4">
               {partnerOrganizations.length === 0 ? (
-                <div className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 text-xs text-[#3E492B]/70 italic">
+                <div className="p-4 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 text-xs text-[#3E492B]/70 italic">
                   Partner hospital and NGO networks onboarding under formal MoUs.
                 </div>
               ) : (
                 partnerOrganizations.map((org) => (
-                  <div key={org.name} className="p-4 rounded-xl border border-[#DDD8CF] bg-[#F5F2EC]/40 flex items-center justify-between gap-4">
+                  <div key={org.name} className="p-4 rounded-md border border-[#DDD8CF] bg-[#F5F2EC]/40 flex items-center justify-between gap-4">
                     <div>
                       <h4 className="font-serif text-base font-medium text-[#3E492B]">{org.name}</h4>
                       <p className="text-xs text-[#3E492B]/70">{org.category}</p>
@@ -276,7 +276,7 @@ export default function AboutPage() {
         </div>
 
         {/* Registration & Legal Compliance Details */}
-        <div id="cdsco" className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-10 space-y-6">
+        <div id="cdsco" className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-10 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#DDD8CF]">
             <div>
               <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#3E492B]/70">
@@ -302,7 +302,7 @@ export default function AboutPage() {
                 <Award className="w-4 h-4 text-[#3E492B]" /> CDSCO & CPCB Guidelines
               </h4>
               <p className="leading-relaxed">
-                Redistribution protocols adhere strictly to Central Drugs Standard Control Organization (CDSCO) non-prescription surplus handling rules and CPCB biohazard safe disposal directives.
+                Redistribution protocols are developed with reference to Central Drugs Standard Control Organization (CDSCO) packaging integrity standards and CPCB safe disposal directives.
               </p>
             </div>
           </div>
@@ -312,7 +312,7 @@ export default function AboutPage() {
         <FAQSection />
 
         {/* Bottom CTA Banner */}
-        <div className="rounded-3xl border border-[#DDD8CF] bg-[#3E492B] text-white p-8 sm:p-12 text-center space-y-6 shadow-md">
+        <div className="rounded-lg border border-[#DDD8CF] bg-[#3E492B] text-white p-8 sm:p-12 text-center space-y-6">
           <h2 className="text-3xl sm:text-4xl font-serif font-medium">Join the Care Redistribution Network</h2>
           <p className="text-sm sm:text-base text-white/80 max-w-xl mx-auto font-sans">
             Whether you are an individual donor, licensed pharmacist, or community clinic, your involvement saves lives.

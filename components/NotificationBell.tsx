@@ -41,7 +41,7 @@ export function NotificationBell() {
   const markAsRead = async (id: string) => {
     try {
       await fetch(`/api/notifications/${id}`, { method: "PATCH" })
-      setNotifications(notifications.filter(n => n._id !== id))
+      setNotifications((current) => current.filter((notification) => notification._id !== id))
     } catch (e) {
       console.error(e)
     }
@@ -49,9 +49,13 @@ export function NotificationBell() {
 
   return (
     <div className="relative">
-      <button 
+      <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)} 
         className="relative p-2 text-[var(--text-primary)] hover:text-[var(--accent-dark)] transition-colors"
+        aria-label={`Notifications${notifications.length > 0 ? ` (${notifications.length} unread)` : ""}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         <Bell className="w-5 h-5" />
         {notifications.length > 0 && (
@@ -62,7 +66,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-[#ddd8cf] rounded-xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 bg-white border border-[#ddd8cf] rounded-md z-50 overflow-hidden">
           <div className="p-3 bg-[#F5F2EC] border-b border-[#ddd8cf]">
             <h3 className="font-serif text-lg text-[var(--text-primary)]">Notifications</h3>
           </div>
@@ -73,13 +77,13 @@ export function NotificationBell() {
               </div>
             ) : (
               notifications.map((notif) => (
-                <div key={notif._id} className="p-4 border-b border-[#ddd8cf] hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => markAsRead(notif._id)}>
+                <button type="button" key={notif._id} className="block w-full p-4 border-b border-[#ddd8cf] hover:bg-gray-50 transition-colors cursor-pointer text-left" onClick={() => markAsRead(notif._id)}>
                   <p className="text-sm font-semibold text-[var(--text-primary)]">{notif.title}</p>
                   <p className="text-xs text-[var(--text-secondary)] mt-1">{notif.message}</p>
                   <p className="text-[10px] text-[var(--text-muted)] mt-2">
                     {new Date(notif.createdAt).toLocaleString()}
                   </p>
-                </div>
+                </button>
               ))
             )}
           </div>

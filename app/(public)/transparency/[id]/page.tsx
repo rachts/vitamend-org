@@ -64,23 +64,23 @@ export default async function TransparencyLedgerPage({ params }: PageProps) {
         </p>
         
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+          <div className="p-4 bg-surface-container-lowest rounded-md border border-outline-variant/30">
             <div className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Status</div>
             <div className="font-label-lg capitalize text-on-surface">
               {medicine.status.replace("_", " ")}
             </div>
           </div>
-          <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+          <div className="p-4 bg-surface-container-lowest rounded-md border border-outline-variant/30">
             <div className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Batch Number</div>
             <div className="font-label-lg text-on-surface">{medicine.batchNumber || "Unknown"}</div>
           </div>
-          <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+          <div className="p-4 bg-surface-container-lowest rounded-md border border-outline-variant/30">
             <div className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Expiry Date</div>
             <div className="font-label-lg text-on-surface">
               {medicine.expiryDate ? new Date(medicine.expiryDate).toLocaleDateString() : "Unknown"}
             </div>
           </div>
-          <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+          <div className="p-4 bg-surface-container-lowest rounded-md border border-outline-variant/30">
             <div className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Manufacturer</div>
             <div className="font-label-lg text-on-surface">{medicine.manufacturer || "Unknown"}</div>
           </div>
@@ -96,7 +96,7 @@ export default async function TransparencyLedgerPage({ params }: PageProps) {
               {getStageIcon(log.stage)}
             </div>
             
-            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-5 shadow-sm">
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-5 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
                 <h3 className="font-label-lg capitalize text-on-surface flex items-center gap-2">
                   {log.stage.replace("_", " ")}

@@ -44,7 +44,7 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // Standalone output for proper serverless bundling
+  // Required by the production Docker image, which copies the traced server.
   output: "standalone",
 
   // External packages for Node.js runtime

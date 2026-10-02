@@ -195,7 +195,7 @@ export default function InventoryPage() {
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 font-sans">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 bg-[#3E492B] text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 font-medium text-xs border border-[#DDD8CF]">
+        <div className="fixed top-20 right-6 z-50 bg-[#3E492B] text-white px-4 py-3 rounded-md flex items-center gap-2 font-medium text-xs border border-[#DDD8CF]">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
@@ -248,7 +248,7 @@ export default function InventoryPage() {
             placeholder="Search by medicine name, generic name, or batch ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm text-sm text-[#3E492B] placeholder:text-[#3E492B]/50 focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
+            className="w-full pl-10 pr-4 py-3 rounded-md border border-[#DDD8CF] bg-white text-sm text-[#3E492B] placeholder:text-[#3E492B]/50 focus:outline-none focus:ring-2 focus:ring-[#3E492B]/20"
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -259,7 +259,7 @@ export default function InventoryPage() {
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 activeCategory === cat
                   ? "bg-[#3E492B] text-white"
-                  : "bg-white/60 text-[#3E492B]/80 hover:text-[#3E492B] border border-[#DDD8CF]"
+                  : "bg-white text-[#3E492B]/80 hover:text-[#3E492B] border border-[#DDD8CF]"
               }`}
             >
               {cat}
@@ -276,7 +276,7 @@ export default function InventoryPage() {
           { title: "Expiring <90 Days", value: expiringSoonCount.toString(), sub: "Priority Dispatch", icon: Clock, alert: expiringSoonCount > 0 },
           { title: "Available for Dispatch", value: availableCount.toString(), sub: "Verified Ready", icon: CheckCircle2 },
         ].map((kpi) => (
-          <div key={kpi.title} className="rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-5 flex flex-col justify-between min-h-[120px]">
+          <div key={kpi.title} className="rounded-md border border-[#DDD8CF] bg-white p-5 flex flex-col justify-between min-h-[120px]">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#3E492B]/70">{kpi.title}</span>
               <kpi.icon className={`w-4 h-4 ${kpi.alert ? "text-amber-600" : "text-[#3E492B]/60"}`} />
@@ -294,7 +294,7 @@ export default function InventoryPage() {
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Inventory Table */}
-        <div className="lg:col-span-2 rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6">
+        <div className="lg:col-span-2 rounded-md border border-[#DDD8CF] bg-white p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-serif font-medium text-[#3E492B]">Available Verified Stock Registry</h2>
@@ -386,7 +386,7 @@ export default function InventoryPage() {
         </div>
 
         {/* Clinic Need Requests Sidebar */}
-        <div className="rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6">
+        <div className="rounded-md border border-[#DDD8CF] bg-white p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-serif font-medium text-[#3E492B]">Clinic Need Requests</h3>
@@ -406,8 +406,8 @@ export default function InventoryPage() {
 
       {/* Add Manual Inventory Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC] p-6 shadow-xl space-y-5 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-lg rounded-lg border border-[#DDD8CF] bg-[#F5F2EC] p-6 space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#DDD8CF]">
               <div>
                 <h3 className="text-lg font-serif font-medium text-[#3E492B]">Add Manual Inventory</h3>
@@ -551,8 +551,8 @@ export default function InventoryPage() {
 
       {/* QR Code Inspection Modal */}
       {activeQrItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC] p-6 shadow-xl space-y-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-sm rounded-lg border border-[#DDD8CF] bg-[#F5F2EC] p-6 space-y-4 text-center">
             <div className="flex justify-between items-center pb-2 border-b border-[#DDD8CF]">
               <span className="font-serif font-medium text-base text-[#3E492B]">Digital QR Barcode</span>
               <button onClick={() => setActiveQrItem(null)} className="text-[#3E492B]/60 hover:text-[#3E492B]">
@@ -579,8 +579,8 @@ export default function InventoryPage() {
 
       {/* Bulk CSV Upload Modal */}
       {isBulkModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[#DDD8CF] bg-[#F5F2EC] p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-md rounded-lg border border-[#DDD8CF] bg-[#F5F2EC] p-6 space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-[#DDD8CF]">
               <span className="font-serif font-medium text-base text-[#3E492B]">Bulk CSV Manifest Upload</span>
               <button onClick={() => setIsBulkModalOpen(false)} className="text-[#3E492B]/60 hover:text-[#3E492B]">

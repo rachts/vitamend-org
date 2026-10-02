@@ -21,10 +21,10 @@ export default function FoundersPage() {
               The Founder&apos;s Journey
             </h1>
             <p className="font-sans text-[var(--text-body)] text-[var(--text-secondary)] leading-[1.8] max-w-[480px]">
-              Witnessing the stark contrast between medical surplus in well-stocked pharmacies and the struggle for access in underserved communities changed my perspective completely. It wasn&apos;t just a supply chain flaw—it was a missed opportunity to save lives and improve health outcomes.
+              Witnessing the contrast between medical surplus in urban pharmacies and the shortage in community clinics highlighted an urgent need. Every unexpired medicine discarded is a missed opportunity to save lives and support public health.
             </p>
             <p className="font-sans text-[var(--text-body)] text-[var(--text-secondary)] leading-[1.8] max-w-[480px]">
-              That realization became the driving force behind Vitamend. We built this platform to seamlessly bridge the gap, using technology to redistribute hope and ensure no usable medicine ever goes to waste. It&apos;s about building a sustainable future where healthcare is accessible to all.
+              That realization became the driving force behind VitaMend. We built this platform to connect surplus supplies directly with clinics in need, using software and pharmacist review to prevent usable medicines from going to waste.
             </p>
           </div>
 
@@ -69,10 +69,10 @@ export default function FoundersPage() {
               Nandini&apos;s Vision
             </h2>
             <p className="font-sans text-[var(--text-body)] text-[var(--text-secondary)] leading-[1.8] max-w-[480px]">
-              Technology has the power to solve some of the world&apos;s most complex logistical challenges. When looking at the systemic inefficiencies in pharmaceutical distribution, the solution wasn&apos;t just another supply chain tool—it was a platform built on trust, transparency, and impact.
+              Technology has the power to solve difficult logistical challenges. Resolving pharmaceutical distribution inefficiencies requires software built with transparency, strict verification protocols, and clinic accountability.
             </p>
             <p className="font-sans text-[var(--text-body)] text-[var(--text-secondary)] leading-[1.8] max-w-[480px]">
-              By combining AI-driven verification with an open ledger, we ensure that every contribution is accounted for. Vitamend is designed to scale care, ensuring that surplus medicine securely reaches those who need it most without compromise.
+              By combining machine-assisted OCR verification with licensed pharmacist review, we ensure every donation is accounted for and safe for dispensing.
             </p>
           </div>
 

@@ -19,6 +19,9 @@ export async function checkRateLimit(req: Request, capacity = 100, _refillRate =
   
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     console.warn("Upstash Redis not configured, skipping rate limit");
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, allowed: false, remaining: 0, reset: Date.now() + 60000 };
+    }
     return { success: true, allowed: true, remaining: capacity, reset: Date.now() + 60000 };
   }
 
@@ -51,12 +54,16 @@ export async function checkRateLimit(req: Request, capacity = 100, _refillRate =
 }
 
 export function rateLimit(req: Request): Promise<RateLimitResult>;
+export function rateLimit(req: Request, capacity?: number, refillRate?: number): Promise<RateLimitResult>;
 export function rateLimit(capacity?: number, refillRate?: number): (req: Request) => Promise<RateLimitResult>;
-export function rateLimit(reqOrCapacity?: Request | number, refillRate = 1) {
+export function rateLimit(reqOrCapacity?: Request | number, capacityOrRefillRate = 1, requestedRefillRate = 10) {
   if (reqOrCapacity && typeof reqOrCapacity === "object" && "headers" in reqOrCapacity) {
-    return checkRateLimit(reqOrCapacity as Request, 100, 10);
+    const capacity = arguments.length >= 2 ? capacityOrRefillRate : 100;
+    const refillRate = arguments.length >= 3 ? requestedRefillRate : 10;
+    return checkRateLimit(reqOrCapacity as Request, capacity, refillRate);
   }
   const capacity = typeof reqOrCapacity === "number" ? reqOrCapacity : 10;
+  const refillRate = arguments.length >= 2 ? capacityOrRefillRate : 1;
   return async function (req: Request) {
     return await checkRateLimit(req, capacity, refillRate);
   };

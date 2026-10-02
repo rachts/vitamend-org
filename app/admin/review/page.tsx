@@ -20,6 +20,7 @@ interface ReviewMed {
   dosage?: string;
   batchNumber?: string;
   manufacturer?: string;
+  expiryDate?: string;
   images?: string[];
   verificationResult?: VerificationResult;
 }
@@ -30,6 +31,7 @@ interface FormData {
   dosage: string;
   batchNumber: string;
   manufacturer: string;
+  expiryDate: string;
   [key: string]: string;
 }
 
@@ -37,7 +39,7 @@ export default function AdminReviewPage() {
   const [queue, setQueue] = useState<ReviewMed[]>([]);
   const [selectedMed, setSelectedMed] = useState<ReviewMed | null>(null);
   const [formData, setFormData] = useState<FormData>({
-    name: "", genericName: "", dosage: "", batchNumber: "", manufacturer: ""
+    name: "", genericName: "", dosage: "", batchNumber: "", manufacturer: "", expiryDate: ""
   });
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,6 +66,7 @@ export default function AdminReviewPage() {
         dosage: selectedMed.dosage || "",
         batchNumber: selectedMed.batchNumber || "",
         manufacturer: selectedMed.manufacturer || "",
+        expiryDate: selectedMed.expiryDate || "",
       });
       setNotes("");
     }
@@ -112,9 +115,9 @@ export default function AdminReviewPage() {
                 <div
                   key={med._id}
                   onClick={() => setSelectedMed(med)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                  className={`p-4 rounded-md border cursor-pointer transition-all ${
                     selectedMed?._id === med._id
-                      ? "border-[#3E492B] bg-[#F5F2EC]/50 shadow-md"
+                      ? "border-[#3E492B] bg-[#F5F2EC] ring-1 ring-[#3E492B]"
                       : "border-[#ddd8cf] hover:border-[#3E492B]/50"
                   }`}
                 >
@@ -146,6 +149,16 @@ export default function AdminReviewPage() {
         {selectedMed ? (
           <div className="p-8 max-w-5xl mx-auto space-y-8">
             <h1 className="text-4xl font-serif text-gray-900">Verify: {selectedMed.name}</h1>
+
+            <div className={`rounded-lg border p-4 ${((selectedMed.verificationResult?.confidence || 0) < 80) ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">AI scan confidence: {selectedMed.verificationResult?.confidence || 0}%</p>
+                  <p className="mt-1 text-xs text-gray-600">Compare every value with the physical pack before making a decision.</p>
+                </div>
+                <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gray-700">Pharmacist gate</span>
+              </div>
+            </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* LEFT COL: Images & AI */}
@@ -180,7 +193,7 @@ export default function AdminReviewPage() {
                     Extracted Data (Edit to Correct)
                   </h3>
                   <div className="space-y-4">
-                    {['name', 'genericName', 'dosage', 'batchNumber', 'manufacturer'].map((field) => (
+                    {['name', 'genericName', 'dosage', 'batchNumber', 'expiryDate', 'manufacturer'].map((field) => (
                       <div key={field}>
                         <label className="block text-xs font-semibold text-gray-500 mb-1 capitalize">
                           {field.replace(/([A-Z])/g, ' $1')}

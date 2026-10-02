@@ -38,7 +38,7 @@ const AnimatedCounter = ({ value, label, icon: Icon, color }: { value: number, l
   }, [value]);
 
   return (
-    <div className="flex flex-col items-center p-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl min-w-[140px]">
+    <div className="flex flex-col items-center p-4 bg-[#1C1A14] border border-white/10 rounded-md min-w-[140px]">
       <Icon className={`w-6 h-6 mb-2 ${color}`} />
       <motion.span 
         key={value} // triggers re-animation on value change

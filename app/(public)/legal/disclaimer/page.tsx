@@ -10,7 +10,7 @@ export default function MedicalDisclaimerPage() {
   return (
     <div className="min-h-screen bg-[#F5F2EC] text-[#3E492B] font-sans pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="rounded-3xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-12 shadow-sm space-y-4">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-12 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3E492B]/10 text-[#3E492B] text-xs font-semibold uppercase tracking-wider">
             <ShieldAlert className="w-4 h-4" /> Legal & Clinical Guidance
           </div>
@@ -20,7 +20,7 @@ export default function MedicalDisclaimerPage() {
           <p className="text-xs font-mono text-[#3E492B]/70">Effective Date: January 1, 2026</p>
         </div>
 
-        <div className="rounded-2xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-8 sm:p-10 space-y-6 text-sm text-[#3E492B]/80 leading-relaxed">
+        <div className="rounded-lg border border-[#DDD8CF] bg-white p-8 sm:p-10 space-y-6 text-sm text-[#3E492B]/80 leading-relaxed">
           <section className="space-y-2">
             <h2 className="text-lg font-serif font-medium text-[#3E492B]">1. Non-Medical Advice</h2>
             <p>
@@ -45,7 +45,7 @@ export default function MedicalDisclaimerPage() {
           <section className="space-y-2">
             <h2 className="text-lg font-serif font-medium text-[#3E492B]">4. Emergency Healthcare Disclaimer</h2>
             <p>
-              VitaMend is not an emergency medical service. If you are experiencing a life-threatening medical emergency, please call your local emergency health service (102 / 112 in India) or visit the nearest hospital emergency room immediately.
+              VitaMend is not an emergency medical service. If you are experiencing a life-threatening medical emergency, please call your local emergency health service (<a href="tel:102" className="underline hover:text-[#2C3320]">102</a> / <a href="tel:112" className="underline hover:text-[#2C3320]">112</a> in India) or visit the nearest hospital emergency room immediately.
             </p>
           </section>
         </div>

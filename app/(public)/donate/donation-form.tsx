@@ -39,6 +39,26 @@ export default function DonationForm() {
   }
 
   useEffect(() => {
+    const savedScan = window.localStorage.getItem("vitamend:ocr-draft")
+    if (savedScan) {
+      try {
+        const parsed = JSON.parse(savedScan) as { medicineName?: string; dosage?: string; expiryDate?: string }
+        setFormData((current) => ({
+          ...current,
+          medicineName: parsed.medicineName || current.medicineName,
+          brand: parsed.medicineName || current.brand,
+          dosage: parsed.dosage || current.dosage,
+          expiryDate: parsed.expiryDate || current.expiryDate,
+        }))
+        window.localStorage.removeItem("vitamend:ocr-draft")
+        toast({ title: "Scan details added", description: "Please review the prefilled values against the physical package." })
+      } catch {
+        window.localStorage.removeItem("vitamend:ocr-draft")
+      }
+    }
+  }, [toast])
+
+  useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
     if (submittedDonationId && verificationStatus === "pending") {
       interval = setInterval(async () => {
@@ -233,11 +253,20 @@ export default function DonationForm() {
         
         {/* Section 01 */}
         <section className="flex flex-col gap-6">
-          <div className="border-b border-[var(--border)] pb-2 mb-4">
+          <div className="border-b border-[var(--border)] pb-2 mb-2">
             <span className="font-serif text-[var(--text-h2)] text-[var(--text-primary)]">Section 01</span>
           </div>
-          <p className="font-sans text-[var(--text-secondary)] mb-2">Upload clear photos of your medicine packaging. Our AI will extract details automatically!</p>
-          
+          <p className="font-sans text-[var(--text-secondary)] mb-2">
+            Upload clear photos of the medicine packaging showing the brand name, batch number, and expiration date.
+          </p>
+
+          <div className="bg-[#EDE9DF] border border-[#D8D2C4] rounded-md p-3.5 text-xs text-[#1C1A14] flex items-start gap-2.5 mb-2">
+            <ShieldCheck className="w-4 h-4 text-[#2C3320] shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <strong>Safety Notice:</strong> Label scanning is assisted by AI and may contain errors. Always verify medicine details against the physical packaging before distribution.
+            </p>
+          </div>
+
           <div 
             className="w-full border border-dashed border-[var(--border)] p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors min-h-[200px]"
             onClick={() => fileInputRef.current?.click()}

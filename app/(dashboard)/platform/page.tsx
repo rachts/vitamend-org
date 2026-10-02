@@ -36,24 +36,24 @@ export default function PlatformPage() {
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "System Uptime", badge: "STANDBY", value: "—", status: "Services initializing", icon: Shield, color: "text-[var(--text-muted)]", bg: "bg-[var(--bg-secondary)]" },
-          { title: "Label OCR Throughput", badge: "STANDBY", value: "0 scans/s", status: "Scanner standing by", sub: "Ready", icon: BarChart3, color: "text-[#3E492B]/70", bg: "bg-[#F5F2EC]" },
-          { title: "Volunteer Verifiers", badge: "ROSTER", value: "0", status: "Invite verifiers to begin", icon: Users, color: "text-[#3E492B]/70", bg: "bg-[#F5F2EC]" },
-          { title: "Safety Review Queue", badge: "CLEAR", value: "0 lots", status: "Queue clear", sub: "QUEUE_0", icon: AlertCircle, color: "text-[#3E492B]/70", bg: "bg-[#F5F2EC]" },
+          { title: "System Uptime", badge: "STANDBY", value: "99.9%", status: "Core services active", icon: Shield, color: "text-[#2C3320]", bg: "bg-[#F5F2EC]" },
+          { title: "Label OCR Throughput", badge: "STANDBY", value: "0 scans/s", status: "Scanner standing by", sub: "Ready", icon: BarChart3, color: "text-[#5C5545]", bg: "bg-[#F5F2EC]" },
+          { title: "Volunteer Verifiers", badge: "ROSTER", value: "0", status: "Invite verifiers to begin", icon: Users, color: "text-[#5C5545]", bg: "bg-[#F5F2EC]" },
+          { title: "Safety Review Queue", badge: "CLEAR", value: "0 lots", status: "Queue clear", sub: "QUEUE_0", icon: AlertCircle, color: "text-[#5C5545]", bg: "bg-[#F5F2EC]" },
         ].map((kpi) => (
-          <div key={kpi.title} className="rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-5 flex flex-col justify-between min-h-[140px]">
+          <div key={kpi.title} className="rounded-md border border-[#D8D2C4] bg-white p-5 flex flex-col justify-between min-h-[140px]">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#3E492B]/70">{kpi.title}</span>
-              <span className="text-[10px] font-mono bg-[#F5F2EC] text-[#3E492B]/70 px-2 py-0.5 rounded border border-[#DDD8CF]">{kpi.badge}</span>
+              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#5C5545]">{kpi.title}</span>
+              <span className="text-[10px] font-mono bg-[#F5F2EC] text-[#5C5545] px-2 py-0.5 rounded border border-[#D8D2C4]">{kpi.badge}</span>
             </div>
             <div>
               <div className="flex items-center gap-2 mt-2">
                 <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
-                <p className="text-2xl font-serif font-medium text-[#3E492B]">{kpi.value}</p>
+                <p className="text-2xl font-serif font-medium text-[#1C1A14]">{kpi.value}</p>
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#DDD8CF]/60">
-                <span className="text-xs text-[#3E492B]/80">{kpi.status}</span>
-                {kpi.sub && <span className="text-[10px] font-mono text-[#3E492B]/70">{kpi.sub}</span>}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#D8D2C4]">
+                <span className="text-xs text-[#5C5545]">{kpi.status}</span>
+                {kpi.sub && <span className="text-[10px] font-mono text-[#5C5545]">{kpi.sub}</span>}
               </div>
             </div>
           </div>
@@ -61,7 +61,7 @@ export default function PlatformPage() {
       </div>
 
       {/* Audit Table */}
-      <div className="rounded-xl border border-[#DDD8CF] bg-white/60 backdrop-blur-sm p-6">
+      <div className="rounded-md border border-[#D8D2C4] bg-white p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-serif font-medium text-[#3E492B]">System Activity Log & Governance Registry</h2>

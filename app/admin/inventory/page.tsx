@@ -152,8 +152,8 @@ export default function AdminInventoryPage() {
 
         {/* Distribute Modal */}
         {isModalOpen && selectedItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-[#ddd8cf]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="bg-white rounded-lg w-full max-w-md overflow-hidden border border-[#ddd8cf]">
               <div className="p-6 border-b border-[#ddd8cf] flex justify-between items-center bg-[#F5F2EC]">
                 <h2 className="text-xl font-serif text-[var(--text-primary)]">Distribute: {selectedItem.name}</h2>
                 <button onClick={() => setIsModalOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors">✕</button>

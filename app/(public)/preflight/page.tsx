@@ -191,7 +191,7 @@ export default function PreflightChecklistPage() {
             </a>
             <a
               href="/demo"
-              className="px-5 py-2.5 rounded-md bg-[#0F766E] hover:bg-[#0D5F58] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+              className="px-5 py-2.5 rounded-md bg-[#0F766E] hover:bg-[#0D5F58] text-white text-xs font-bold transition-all flex items-center gap-1.5"
             >
               <Play className="h-4 w-4 fill-white" /> Launch /demo Walkthrough
             </a>

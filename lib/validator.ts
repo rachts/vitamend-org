@@ -6,6 +6,17 @@ import { isBefore, addMonths, endOfMonth, isValid as isValidDate } from "date-fn
  * and standard pharmaceutical distribution rules.
  */
 export function validateMedicineDetails(details: ExtractedMedicineDetails): MedicineValidationResult {
+  // Route input is untrusted at runtime even though the TypeScript type is not optional.
+  details = details && typeof details === "object"
+    ? {
+        medicineName: typeof details.medicineName === "string" ? details.medicineName : null,
+        dosage: typeof details.dosage === "string" ? details.dosage : null,
+        batchNumber: typeof details.batchNumber === "string" ? details.batchNumber : null,
+        expiryDate: typeof details.expiryDate === "string" ? details.expiryDate : null,
+        manufacturer: typeof details.manufacturer === "string" ? details.manufacturer : null,
+        mrp: typeof details.mrp === "string" ? details.mrp : null,
+      }
+    : { medicineName: null, dosage: null, batchNumber: null, expiryDate: null, manufacturer: null, mrp: null };
   const errors: ValidationFieldError[] = [];
   const warnings: ValidationFieldError[] = [];
 
@@ -165,8 +176,10 @@ export function parseExpiryToDate(dateStr: string): Date | null {
     const day = Number.parseInt(m[1], 10);
     const month = Number.parseInt(m[2], 10);
     const year = Number.parseInt(m[3], 10);
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 2000 && year <= 2100) {
-      return new Date(year, month - 1, day);
+    const date = new Date(year, month - 1, day);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 2000 && year <= 2100 &&
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
+      return date;
     }
   }
 
