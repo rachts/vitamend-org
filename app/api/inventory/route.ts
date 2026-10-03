@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import connectMongoose from "@/lib/db";
 import { Inventory } from "@/models/Inventory";
+import { rateLimit } from "@/lib/rate-limit";
+import { isUnexpiredDate } from "@/lib/stock-lifecycle";
 
 interface RawInventoryItem {
   _id: unknown;
@@ -22,11 +24,12 @@ interface RawInventoryItem {
 
 export async function GET(req: Request) {
   try {
+    if (!(await rateLimit(req, 100)).success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!["admin", "volunteer"].includes(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
@@ -35,8 +38,8 @@ export async function GET(req: Request) {
 
     const rawPage = searchParams.get("page") ?? "1";
     const rawLimit = searchParams.get("limit") ?? "20";
-    const page = Number.isNaN(Number(rawPage)) ? 1 : Math.max(1, Number(rawPage));
-    const limit = Number.isNaN(Number(rawLimit)) ? 20 : Math.min(100, Math.max(1, Number(rawLimit)));
+    const page = Math.max(1, Math.min(100000, Number.parseInt(rawPage, 10) || 1));
+    const limit = Math.max(1, Math.min(100, Number.parseInt(rawLimit, 10) || 20));
 
     await connectMongoose();
 
@@ -77,11 +80,12 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    if (!(await rateLimit(req, 30)).success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!["admin", "volunteer"].includes(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
@@ -90,16 +94,16 @@ export async function POST(req: Request) {
 
     const { name, quantity, expiryDate, genericName, category, batchNumber, manufacturer, location, status } = body;
 
-    if (!name || typeof name !== "string" || !name.trim()) {
+    if (!name || typeof name !== "string" || !name.trim() || name.length > 300) {
       return NextResponse.json({ error: "Medicine name is required" }, { status: 400 });
     }
 
     const parsedQty = Number(quantity);
-    if (Number.isNaN(parsedQty) || parsedQty <= 0) {
+    if (typeof quantity !== "number" || !Number.isInteger(parsedQty) || parsedQty <= 0 || parsedQty > 100000) {
       return NextResponse.json({ error: "Quantity must be a positive number" }, { status: 400 });
     }
 
-    if (!expiryDate) {
+    if (typeof expiryDate !== "string" || !expiryDate) {
       return NextResponse.json({ error: "Expiry date is required" }, { status: 400 });
     }
 
@@ -109,14 +113,20 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
-    if (parsedExpiry <= now) {
+    if (!isUnexpiredDate(expiryDate, now.getTime())) {
       return NextResponse.json({ error: "Medicine is already expired and cannot be added to inventory" }, { status: 400 });
+    }
+
+    for (const value of [genericName, category, batchNumber, manufacturer, location]) {
+      if (value !== undefined && (typeof value !== "string" || value.length > 300)) {
+        return NextResponse.json({ error: "Invalid inventory fields" }, { status: 400 });
+      }
     }
 
     await connectMongoose();
 
     const uniqueId = `MED-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-    const donationId = `DON-${Date.now()}`;
+    const donationId = `DON-${crypto.randomUUID()}`;
 
     const newInventory = await Inventory.create({
       medicineId: uniqueId,

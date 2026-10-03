@@ -87,23 +87,10 @@ export async function POST(req: Request) {
     let replyText = "";
 
     if (result.success) {
-      if (result.decision === "approved") {
-        replyText = `✅ Medicine Verified Successfully!
+      replyText = `Medicine Under Review
 Medicine: ${updatedMed?.name || 'Unknown'}
-Expiry: ${updatedMed?.expiryDate ? new Date(updatedMed.expiryDate).toLocaleDateString() : 'N/A'}
-Confidence: ${updatedMed?.verificationResult?.confidence}%
-
-Your medicine is eligible for donation! Please click here to arrange pickup: https://vitamend.vercel.app/donate/pickup/${med._id}`;
-      } else if (result.decision === "under_review") {
-        replyText = `⚠️ Medicine Under Review
-Medicine: ${updatedMed?.name || 'Unknown'}
-Confidence was slightly low (${updatedMed?.verificationResult?.confidence}%). A pharmacist will manually review your submission. We will notify you shortly.`;
-      } else {
-        replyText = `❌ Donation Rejected
-We detected a safety issue with this medicine (e.g. Expired, Tampered, or Recalled).
-Reason: ${updatedMed?.verificationResult?.aiReasoning || "Failed safety checks."}
-Thank you for your understanding.`;
-      }
+Automated assessment requires human review; it is not approval.
+Please open ${process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin}/donate to complete donation intake. No pickup has been scheduled. No notification or review time is guaranteed.`;
     } else {
       replyText = `❌ We encountered an error processing your image. Please try sending a clearer photo.`;
     }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectMongoose from "@/lib/db";
 import { Medicine } from "@/models/Medicine";
 import { User } from "@/models/User";
+import { Distribution } from "@/models/Distribution";
 
 export async function GET() {
   try {
@@ -13,29 +14,29 @@ export async function GET() {
       rejectedDonations,
       distributedMedicines,
       volunteers,
-      clinics
+       clinics
     ] = await Promise.all([
-      Medicine.countDocuments(),
+       Medicine.aggregate<{ total: number }>([{ $group: { _id: null, total: { $sum: "$quantity" } } }]),
       Medicine.countDocuments({ status: { $in: ["approved", "distributed", "disposed"] } }),
       Medicine.countDocuments({ status: "rejected" }),
-      Medicine.countDocuments({ status: "distributed" }),
+       Distribution.aggregate<{ total: number }>([{ $match: { status: "delivered" } }, { $group: { _id: null, total: { $sum: "$quantity" } } }]),
       User.countDocuments({ role: "volunteer" }),
-      User.countDocuments({ role: "ngo" }) // Assuming 'ngo' or recipient represents clinics
+       Distribution.distinct("recipientId", { status: "delivered", recipientType: "hospital", recipientId: { $exists: true, $nin: [null, ""] } })
     ]);
 
     // Track actual patients treated via Distribution model, or omit if not tracked
-    const peopleHelped = 0; // Will be implemented when Distribution.patientsTreated field is added
+    const peopleHelped = null; // Patient outcomes are not tracked.
 
     return NextResponse.json({
       success: true,
       stats: {
-        medicinesDonated,
+        medicinesDonated: medicinesDonated[0]?.total ?? 0,
         approvedDonations,
         rejectedDonations,
-        distributedMedicines,
-        peopleHelped: Math.floor(peopleHelped),
+        distributedMedicines: distributedMedicines[0]?.total ?? 0,
+        peopleHelped,
         volunteers,
-        activeClinics: clinics
+        activeClinics: clinics.length
       }
     });
   } catch (error) {

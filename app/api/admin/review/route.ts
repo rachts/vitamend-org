@@ -6,18 +6,22 @@ import { VerificationLog } from "@/models/VerificationLog";
 import { Inventory } from "@/models/Inventory";
 import { AILearningDataset } from "@/models/AILearningDataset";
 import { sendNotification } from "@/lib/notifications";
+import mongoose from "mongoose";
+import { rateLimit } from "@/lib/rate-limit";
+import { StockError, isUnexpiredDate, validateApproval } from "@/lib/stock-lifecycle";
 
 export async function GET(req: Request) {
   try {
+    if (!(await rateLimit(req, 100)).success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     const session = await auth();
-    if (!session?.user?.id || !["admin", "volunteer"].includes(session.user.role)) {
-      return NextResponse.json({ error: "Forbidden: Admins or Volunteers only" }, { status: 403 });
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") || "under_review";
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Math.max(1, Math.min(100000, parseInt(searchParams.get("page") || "1") || 1));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") || "10") || 10));
 
     await connectMongoose();
 
@@ -61,76 +65,71 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    if (!(await rateLimit(req, 30)).success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     const session = await auth();
-    if (!session?.user?.id || !["admin", "volunteer"].includes(session.user.role)) {
-      return NextResponse.json({ error: "Forbidden: Admins or Volunteers only" }, { status: 403 });
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
     }
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new StockError("Invalid payload");
     const { medicineId, decision, notes, correctedData } = body;
-    if (!medicineId || !["approved", "rejected"].includes(decision)) {
-      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    if (typeof medicineId !== "string" || !mongoose.isObjectIdOrHexString(medicineId) || !["approved", "rejected"].includes(decision) || (notes !== undefined && (typeof notes !== "string" || notes.length > 2000))) {
+      throw new StockError("Invalid payload");
+    }
+    const safeCorrections: Record<string, string> = {};
+    if (correctedData !== undefined) {
+      if (!correctedData || typeof correctedData !== "object" || Array.isArray(correctedData)) throw new StockError("Invalid corrected data");
+      const allowed = ["name", "genericName", "dosage", "batchNumber", "manufacturer", "expiryDate"];
+      for (const [key, value] of Object.entries(correctedData)) {
+        if (!allowed.includes(key) || typeof value !== "string" || value.length > 300) throw new StockError("Invalid corrected data");
+        safeCorrections[key] = value.trim();
+      }
+      if (safeCorrections.expiryDate !== undefined && !isUnexpiredDate(safeCorrections.expiryDate, -Infinity)) throw new StockError("Invalid corrected expiry date");
     }
     await connectMongoose();
-    const medicine = await Medicine.findById(medicineId);
-    if (!medicine) {
-      return NextResponse.json({ error: "Medicine not found" }, { status: 404 });
-    }
-    // Process corrections if any
-    if (correctedData) {
-      if (typeof correctedData !== "object" || Array.isArray(correctedData)) {
-        return NextResponse.json({ error: "Invalid corrected data" }, { status: 400 });
-      }
-      const allowedCorrectionFields = ["name", "genericName", "dosage", "batchNumber", "manufacturer", "expiryDate"];
-      const safeCorrections = Object.fromEntries(
-        Object.entries(correctedData).filter(([key, value]) => allowedCorrectionFields.includes(key) && typeof value === "string" && value.length <= 300)
-      );
-      await AILearningDataset.create({
-        medicineId,
-        originalPrediction: medicine.verificationResult?.extractedData,
-        correctedPrediction: safeCorrections,
-        correctionType: "classification",
-        correctedBy: session.user.id,
+    const dbSession = await mongoose.startSession();
+    let donorId = "";
+    let medicineName = "";
+    try {
+      await dbSession.withTransaction(async () => {
+        const medicine = await Medicine.findById(medicineId).session(dbSession);
+        if (!medicine) throw new StockError("Medicine not found", 404);
+        if (medicine.status !== "under_review") throw new StockError("Medicine is no longer awaiting review", 409);
+        const candidate = { ...medicine.toObject(), ...safeCorrections };
+        if (decision === "approved") validateApproval(candidate);
+        const originalPrediction = medicine.verificationResult?.extractedData;
+        Object.assign(medicine, safeCorrections);
+        medicine.status = decision;
+        medicine.reviewNotes = notes;
+        medicine.reviewedBy = session.user.id;
+        await medicine.save({ session: dbSession });
+        if (correctedData !== undefined) {
+          await AILearningDataset.create([{ medicineId, originalPrediction, correctedPrediction: safeCorrections, correctionType: "classification", correctedBy: session.user.id }], { session: dbSession });
+        }
+        await VerificationLog.create([{ medicineId, stage: "manual_review", status: "success", details: { decision, notes, corrected: correctedData !== undefined }, confidence: 100 }], { session: dbSession });
+        if (decision === "approved") {
+          const id = medicine._id.toString();
+          if (await Inventory.findOne({ donationId: id }).session(dbSession)) throw new StockError("Donation already has inventory", 409);
+          await Inventory.create([{ medicineId: id, donationId: id, name: medicine.name, genericName: medicine.genericName, category: medicine.category, quantity: medicine.quantity, batchNumber: medicine.batchNumber, expiryDate: medicine.expiryDate, manufacturer: medicine.manufacturer, location: "Main Warehouse", status: "available" }], { session: dbSession });
+        }
+        donorId = medicine.donorId;
+        medicineName = medicine.name;
       });
-      // Apply corrections to medicine record
-      Object.assign(medicine, safeCorrections);
+    } finally {
+      await dbSession.endSession();
     }
-    medicine.status = decision;
-    medicine.reviewNotes = notes;
-    medicine.reviewedBy = session.user.id;
-    await medicine.save();
-    await VerificationLog.create({
-      medicineId,
-      stage: "manual_review",
-      status: "success",
-      details: { decision, notes, corrected: !!correctedData },
-      confidence: 100,
-    });
-    if (decision === "approved") {
-      const existingInventory = await Inventory.findOne({ donationId: medicine._id.toString() });
-      if (!existingInventory) {
-        await Inventory.create({
-          medicineId: medicine._id.toString(),
-          name: medicine.name,
-          genericName: medicine.genericName,
-          quantity: medicine.quantity,
-          batchNumber: medicine.batchNumber,
-          expiryDate: medicine.expiryDate,
-          manufacturer: medicine.manufacturer,
-          location: "Main Warehouse",
-          status: "available",
-          donationId: medicine._id.toString(),
-        });
-      }
+    // A notification failure must not turn a committed review into an apparent failure.
+    try {
+      await sendNotification({ userId: donorId, type: "donation_update", title: `Donation ${decision === "approved" ? "Approved" : "Rejected"}`, message: `Your donation of ${medicineName} has been reviewed and ${decision}. ${notes || ""}` });
+    } catch (error) {
+      console.error("Review notification failed:", error);
     }
-    // Notify the donor
-    await sendNotification({
-      userId: medicine.donorId,
-      type: "donation_update",
-      title: `Donation ${decision === "approved" ? "Approved" : "Rejected"}`,
-      message: `Your donation of ${medicine.name} has been reviewed and ${decision}. ${notes || ""}`,
-    });
     return NextResponse.json({ success: true, message: `Medicine ${decision}` });
   } catch (error: unknown) {
+    if (error instanceof StockError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
+      return NextResponse.json({ error: "Donation already has inventory" }, { status: 409 });
+    }
     console.error("POST /api/admin/review error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

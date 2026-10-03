@@ -37,10 +37,10 @@ export default function SignUp() {
       return
     }
 
-    if (formData.password.length < 6) {
+    if (formData.password.length < 8 || formData.password.length > 128) {
       toast({
         title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
+        description: "Password must be between 8 and 128 characters long.",
         variant: "destructive",
       })
       return
@@ -68,7 +68,7 @@ export default function SignUp() {
 
       toast({
         title: "Account Registered",
-        description: "Your partner account has been verified. Initializing secure session...",
+        description: "Your account has been created. Signing you in...",
       })
       
       await signIn("credentials", {
@@ -157,7 +157,7 @@ export default function SignUp() {
                 disabled={isLoading}
               >
                 <option value="donor">I want to donate medicines</option>
-                <option value="volunteer">I want to volunteer</option>
+                <option value="recipient">I want to receive medicines</option>
                 <option value="ngo">I represent an NGO</option>
               </select>
             </div>
@@ -170,6 +170,9 @@ export default function SignUp() {
                 <div className="relative">
                   <input
                     id="password"
+                    minLength={8}
+                    maxLength={128}
+                    autoComplete="new-password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -195,6 +198,9 @@ export default function SignUp() {
                 <div className="relative">
                   <input
                     id="confirmPassword"
+                    minLength={8}
+                    maxLength={128}
+                    autoComplete="new-password"
                     type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}

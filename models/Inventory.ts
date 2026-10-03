@@ -24,13 +24,13 @@ const InventorySchema = new Schema<IInventory>(
     name: { type: String, required: true },
     genericName: { type: String },
     category: { type: String, default: "General", index: true },
-    quantity: { type: Number, required: true },
+    quantity: { type: Number, required: true, min: 0, validate: Number.isInteger },
     batchNumber: { type: String },
     expiryDate: { type: Date, required: true, index: true },
     manufacturer: { type: String },
     location: { type: String, default: "Main Warehouse", index: true },
     status: { type: String, enum: InventoryStatus, default: "available", index: true },
-    donationId: { type: String, required: true },
+    donationId: { type: String, required: true, unique: true },
   },
   { timestamps: true }
 );

@@ -9,6 +9,15 @@ export interface IMedicine extends Document {
   dosage?: string;
   batchNumber?: string;
   manufacturer?: string;
+  brand?: string;
+  condition?: string;
+  notes?: string;
+  donorName?: string;
+  donorEmail?: string;
+  donorPhone?: string;
+  donorAddress?: string;
+  expiryLabel?: string;
+  packagingEvidence?: { data: string; mimeType: string }[];
   quantity: number;
   expiryDate: Date;
   images: string[];
@@ -18,7 +27,7 @@ export interface IMedicine extends Document {
     confidence: number;
     isTampered: boolean;
     isDuplicate: boolean;
-    isExpired: boolean;
+    isExpired?: boolean;
     isRecalled: boolean;
     aiReasoning: string;
     extractedData: unknown;
@@ -37,6 +46,15 @@ const MedicineSchema = new Schema<IMedicine>(
     dosage: { type: String },
     batchNumber: { type: String },
     manufacturer: { type: String },
+    brand: { type: String },
+    condition: { type: String },
+    notes: { type: String },
+    donorName: { type: String },
+    donorEmail: { type: String },
+    donorPhone: { type: String },
+    donorAddress: { type: String },
+    expiryLabel: { type: String },
+    packagingEvidence: { type: [{ data: String, mimeType: String }], select: false },
     quantity: { type: Number, required: true, min: 1 },
     expiryDate: { type: Date, required: true },
     images: [{ type: String }],

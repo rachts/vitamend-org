@@ -24,7 +24,7 @@ const DistributionSchema = new Schema<IDistribution>(
     recipientType: { type: String, enum: DistributionRecipient, required: true },
     recipientId: { type: String },
     recipientName: { type: String, required: true },
-    quantity: { type: Number, required: true },
+    quantity: { type: Number, required: true, min: 1, max: 100000, validate: Number.isInteger },
     status: { type: String, enum: DistributionStatus, default: "pending" },
     distributedBy: { type: String },
     distributedAt: { type: Date },

@@ -3,29 +3,30 @@ import connectMongoose from "@/lib/db";
 import { User } from "@/models/User";
 import { rateLimit } from "@/lib/rate-limit";
 import crypto from "crypto";
+import { z } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
     const limit = await rateLimit(req, 10, 1);
     if (!limit.allowed) return NextResponse.json({ success: false, message: "Too many requests" }, { status: 429 });
-    await connectMongoose();
-    const { token, newPassword } = await req.json();
-
-    if (!token || !newPassword) {
+    const payload = z.object({ token: z.string().regex(/^[a-f0-9]{64}$/), newPassword: z.string() }).safeParse(await req.json());
+    if (!payload.success) {
       return NextResponse.json(
         { success: false, message: "Token and new password are required" },
         { status: 400 }
       );
     }
+    const { token, newPassword } = payload.data;
 
-    if (typeof newPassword !== "string" || newPassword.length < 8) {
+    if (newPassword.length < 8 || newPassword.length > 128) {
       return NextResponse.json(
-        { success: false, message: "Password must be at least 8 characters" },
+        { success: false, message: "Password must be between 8 and 128 characters" },
         { status: 400 }
       );
     }
 
-    const tokenHash = crypto.createHash("sha256").update(String(token)).digest("hex");
+    await connectMongoose();
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const user = await User.findOne({
       resetPasswordToken: tokenHash,
       resetPasswordExpires: { $gt: new Date() },
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
       message: "Password updated successfully",
     });
   } catch (error: unknown) {
+    if (error instanceof SyntaxError) return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
     console.error("Reset password error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },

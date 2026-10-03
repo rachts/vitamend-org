@@ -1,9 +1,13 @@
 import { Redis } from "@upstash/redis";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-});
+let redis: Redis | undefined;
+const localWindows = new Map<string, { count: number; reset: number }>();
+const WINDOW_MS = 60_000;
+const incrementWindow = `
+  local count = redis.call('INCR', KEYS[1])
+  if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+  return count
+`;
 
 export interface RateLimitResult {
   success: boolean;
@@ -12,59 +16,52 @@ export interface RateLimitResult {
   reset: number;
 }
 
-export async function checkRateLimit(req: Request, capacity = 100, _refillRate = 10): Promise<RateLimitResult> {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
-    || req.headers.get("x-real-ip") 
-    || "unknown";
-  
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    console.warn("Upstash Redis not configured, skipping rate limit");
-    if (process.env.NODE_ENV === "production") {
-      return { success: false, allowed: false, remaining: 0, reset: Date.now() + 60000 };
-    }
-    return { success: true, allowed: true, remaining: capacity, reset: Date.now() + 60000 };
-  }
-
+// A fixed one-minute window. The legacy third argument is accepted but ignored;
+// it has never implemented token-bucket refill semantics.
+export async function checkRateLimit(req: Request, capacity = 100, _legacyRefillRate?: number): Promise<RateLimitResult> {
   const now = Date.now();
-  const key = `rate-limit:${ip}`;
-
-  try {
-    const windowSeconds = 60; // 1 minute window
-    
-    const [count] = await redis.pipeline()
-      .incr(key)
-      .expire(key, windowSeconds)
-      .exec();
-
-    // Type checking the pipeline response
-    const currentCount = typeof count === 'number' ? count : 1;
-    const isAllowed = currentCount <= capacity;
-
-    return {
-      success: isAllowed,
-      allowed: isAllowed,
-      remaining: Math.max(0, capacity - currentCount),
-      reset: now + (windowSeconds * 1000)
-    };
-  } catch (error) {
-    console.error("Rate limit error:", error);
-    // Fail open if Redis is down
-    return { success: true, allowed: true, remaining: capacity, reset: now + 60000 };
+  const reset = (Math.floor(now / WINDOW_MS) + 1) * WINDOW_MS;
+  const denied = { success: false, allowed: false, remaining: 0, reset };
+  if (!Number.isSafeInteger(capacity) || capacity < 1) return denied;
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || req.headers.get("x-real-ip") || "unknown";
+  // Isolate endpoints and limits so a permissive endpoint cannot consume or
+  // bypass the stricter authentication quota.
+  const key = `rate-limit:${new URL(req.url).pathname}:${capacity}:${ip}:${Math.floor(now / WINDOW_MS)}`;
+  const configured = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  let count: number;
+  if (!configured) {
+    if (process.env.NODE_ENV === "production") return denied;
+    for (const [entryKey, entry] of localWindows) {
+      if (entry.reset <= now) localWindows.delete(entryKey);
+    }
+    count = (localWindows.get(key)?.count ?? 0) + 1;
+    localWindows.set(key, { count, reset });
+  } else {
+    try {
+      redis ??= new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL!,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      });
+      const result = await redis.eval(incrementWindow, [key], [Math.ceil((reset - now) / 1000)]);
+      if (typeof result !== "number" || !Number.isSafeInteger(result) || result < 1) return denied;
+      count = result;
+    } catch {
+      // Configured storage failure is never permission to bypass the limit.
+      return denied;
+    }
   }
+  const allowed = count <= capacity;
+  return { success: allowed, allowed, remaining: Math.max(0, capacity - count), reset };
 }
 
 export function rateLimit(req: Request): Promise<RateLimitResult>;
-export function rateLimit(req: Request, capacity?: number, refillRate?: number): Promise<RateLimitResult>;
-export function rateLimit(capacity?: number, refillRate?: number): (req: Request) => Promise<RateLimitResult>;
-export function rateLimit(reqOrCapacity?: Request | number, capacityOrRefillRate = 1, requestedRefillRate = 10) {
+export function rateLimit(req: Request, capacity?: number, legacyRefillRate?: number): Promise<RateLimitResult>;
+export function rateLimit(capacity?: number, legacyRefillRate?: number): (req: Request) => Promise<RateLimitResult>;
+export function rateLimit(reqOrCapacity?: Request | number, capacity = 100, _legacyRefillRate?: number) {
   if (reqOrCapacity && typeof reqOrCapacity === "object" && "headers" in reqOrCapacity) {
-    const capacity = arguments.length >= 2 ? capacityOrRefillRate : 100;
-    const refillRate = arguments.length >= 3 ? requestedRefillRate : 10;
-    return checkRateLimit(reqOrCapacity as Request, capacity, refillRate);
+    return checkRateLimit(reqOrCapacity, capacity);
   }
-  const capacity = typeof reqOrCapacity === "number" ? reqOrCapacity : 10;
-  const refillRate = arguments.length >= 2 ? capacityOrRefillRate : 1;
-  return async function (req: Request) {
-    return await checkRateLimit(req, capacity, refillRate);
-  };
+  const limit = typeof reqOrCapacity === "number" ? reqOrCapacity : 10;
+  return (req: Request) => checkRateLimit(req, limit);
 }

@@ -13,24 +13,17 @@ export async function GET(_req: Request) {
     await connectMongoose();
     const userId = (session.user as { id?: string; _id?: string }).id;
 
-    // Retrieve all donations for this user
-    const userDonations = await Medicine.find({ donorId: userId });
-
-    const totalDonations = userDonations.length;
-    
-    // impactScore: sum of all quantity fields × 10
-    const impactScore = userDonations.reduce((acc, doc) => acc + (doc.quantity || 0) * 10, 0);
-    
-    // pendingPickups: count where status === 'pending' or 'scheduled'
-    const pendingPickups = userDonations.filter(doc => {
-      const s = doc.status as string;
-      return s === 'pending' || s === 'under_review' || s === 'scheduled';
-    }).length;
+    const [totals] = await Medicine.aggregate<{ totalDonations: number; donatedUnits: number; pendingReviews: number }>([
+      { $match: { donorId: userId } },
+      { $group: { _id: null, totalDonations: { $sum: 1 }, donatedUnits: { $sum: "$quantity" }, pendingReviews: { $sum: { $cond: [{ $in: ["$status", ["pending", "under_review"]] }, 1, 0] } } } },
+    ]);
 
     return NextResponse.json({
-      totalDonations,
-      impactScore,
-      pendingPickups
+      totalDonations: totals?.totalDonations ?? 0,
+      donatedUnits: totals?.donatedUnits ?? 0,
+      pendingReviews: totals?.pendingReviews ?? 0,
+      impactScore: null,
+      pendingPickups: null
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);

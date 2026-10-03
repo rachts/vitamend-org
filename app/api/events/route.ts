@@ -28,9 +28,13 @@ export async function GET() {
         title = "AI Vision Extraction";
         description = "AI extracted details from image.";
       } else if (log.stage === "decision" && log.status === "success") {
-        type = "PHARMACIST_APPROVED";
-        title = "Verification Complete";
-        description = details?.decision === "approved" ? "Medicine cleared for donation." : "Medicine routed for manual review.";
+        type = "AI_DECISION";
+        title = "Automated Assessment";
+        description = `AI decision: ${details?.decision || "unavailable"}. This is not human signoff.`;
+      } else if (log.stage === "manual_review" && log.status === "success") {
+        type = "HUMAN_REVIEW";
+        title = "Human Review Recorded";
+        description = `Reviewer decision: ${details?.decision || "unavailable"}.`;
       }
       const med = medMap.get(log.medicineId);
       return {

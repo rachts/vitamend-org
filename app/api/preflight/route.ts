@@ -11,8 +11,8 @@ export async function GET() {
       id: "vision",
       name: "Google Gemini Vision API Connection",
       description: "Verifies Gemini AI SDK credentials.",
-      status: "pass",
-      details: process.env.GEMINI_API_KEY ? "GEMINI_API_KEY configured." : "Using default API bindings.",
+      status: process.env.GEMINI_API_KEY ? "warning" : "fail",
+      details: process.env.GEMINI_API_KEY ? "Credential configured; provider connectivity has not been tested." : "GEMINI_API_KEY is missing.",
       estimatedFixTime: "3 mins (check .env.local GEMINI_API_KEY)",
     },
     {
@@ -27,16 +27,16 @@ export async function GET() {
       id: "flows",
       name: "Complete User Journey Smoke Test",
       description: "Validates route parameters for intake workflows.",
-      status: "pass",
-      details: "All intake parameters nominal.",
+      status: "warning",
+      details: "User journey not executed by this endpoint.",
       estimatedFixTime: "0 mins",
     },
     {
       id: "ocr_pipeline",
-      name: "OCR Extraction accuracy on Sample Label",
-      description: "Executes sample pharmaceutical label processing.",
+      name: "Local text parser sample",
+      description: "Parses fixture text; does not test image OCR or provider accuracy.",
       status: "pass",
-      details: "Sample scan tested successfully.",
+      details: "Local text parsing passed. Image OCR has not been tested.",
       estimatedFixTime: "0 mins",
     },
   ];
@@ -49,11 +49,11 @@ export async function GET() {
       dbCheck.status = "pass";
       dbCheck.details = "Connected to MongoDB successfully.";
     }
-  } catch (err) {
+  } catch {
     const dbCheck = checks.find((c) => c.id === "database");
     if (dbCheck) {
       dbCheck.status = "fail";
-      dbCheck.details = err instanceof Error ? err.message : "Failed to connect to MongoDB";
+      dbCheck.details = "Failed to connect to MongoDB";
     }
   }
 

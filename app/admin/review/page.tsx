@@ -43,14 +43,17 @@ export default function AdminReviewPage() {
   });
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchQueue = async () => {
     try {
       const res = await fetch("/api/admin/review");
       const data = await res.json();
-      if (data.medicines) setQueue(data.medicines);
+      if (!res.ok || !Array.isArray(data.medicines)) throw new Error(data.error || "Unable to load review queue");
+      setQueue(data.medicines);
     } catch (e) {
       console.error(e);
+      setError(e instanceof Error ? e.message : "Unable to load review queue");
     }
   };
 
@@ -73,25 +76,29 @@ export default function AdminReviewPage() {
   }, [selectedMed]);
 
   const handleDecision = async (decision: "approved" | "rejected") => {
-    if (!selectedMed) return;
+    if (!selectedMed || loading) return;
     setLoading(true);
+    setError("");
 
     try {
-      await fetch("/api/admin/review", {
+      const res = await fetch("/api/admin/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           medicineId: selectedMed._id,
           decision,
           notes,
-          correctedData: formData,
+          correctedData: decision === "approved" ? formData : undefined,
         }),
       });
+      const result = await res.json();
+      if (!res.ok || result.success !== true) throw new Error(result.error || "Review was not confirmed. Please try again.");
 
       setSelectedMed(null);
       fetchQueue();
     } catch (e) {
       console.error(e);
+      setError(e instanceof Error ? e.message : "Review failed. Your changes have been retained.");
     } finally {
       setLoading(false);
     }
@@ -104,6 +111,7 @@ export default function AdminReviewPage() {
         <div className="p-6 border-b border-[#ddd8cf] sticky top-0 bg-white z-10 shadow-sm">
           <h2 className="text-3xl font-serif text-[#3E492B]">Review Queue</h2>
           <p className="text-sm font-sans text-gray-500 mt-1">{queue.length} items pending review</p>
+          {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
         </div>
         <div className="p-4 space-y-4 flex-1">
           {queue.length === 0 ? (

@@ -27,21 +27,28 @@ export default function VolunteerPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [errorNotice, setErrorNotice] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setSuccessNotice("Thank you for registering! Our volunteer orientation team will contact you within 48 hours.");
+    setSuccessNotice(null);
+    setErrorNotice(null);
+    try {
+      const response = await fetch("/api/volunteers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...formData, role: selectedRole }) });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error || "Application could not be submitted.");
+      setSuccessNotice("Application received and pending review. Thank you for your interest.");
       setFormData({ fullName: "", email: "", phone: "", city: "", qualification: "", availability: "Part-time (2-5 hrs/wk)" });
-      setTimeout(() => setSuccessNotice(null), 5000);
-    }, 1200);
+    } catch (error) {
+      setErrorNotice(error instanceof Error ? error.message : "Application unavailable. Please try again later.");
+    } finally { setSubmitting(false); }
   };
 
   const roles = [
@@ -179,6 +186,7 @@ export default function VolunteerPage() {
             </div>
           )}
 
+          {errorNotice && <p role="alert" className="text-sm text-red-700">{errorNotice}</p>}
           <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -248,6 +256,8 @@ export default function VolunteerPage() {
               </div>
             </div>
 
+            <label className="block">Phone (optional)<input name="phone" type="tel" maxLength={30} value={formData.phone} onChange={handleInputChange} className="block w-full rounded-md border p-2" /></label>
+            <label className="block">Availability<select name="availability" value={formData.availability} onChange={handleInputChange} className="block w-full rounded-md border p-2"><option>Part-time (2-5 hrs/wk)</option><option>Weekends</option><option>Flexible</option></select></label>
             <div className="pt-2 flex items-center justify-between">
               <span className="text-[11px] text-[#3E492B]/60 font-mono">SELECTED ROLE: {selectedRole.toUpperCase()}</span>
               <button

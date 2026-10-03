@@ -32,6 +32,7 @@ export function LiveDemo() {
 
   const processFile = async (selectedFile: File) => {
     setFile(selectedFile)
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewUrl(URL.createObjectURL(selectedFile))
     setStatus("scanning")
     setErrorMessage(null)
@@ -40,7 +41,8 @@ export function LiveDemo() {
     try {
       // Call the actual OCR service
       const ocrResult = await OCRService.processImage(selectedFile)
-      setResult(ocrResult)
+      if (ocrResult.success !== true) throw new Error("OCR did not confirm extraction success.")
+      setResult({ ...ocrResult, medicine_name: ocrResult.extracted?.medicineName ?? ocrResult.medicine_name, batch: ocrResult.extracted?.batchNumber ?? ocrResult.batch, expiry: ocrResult.extracted?.expiryDate ?? ocrResult.expiry, needs_review: ocrResult.validation ? !ocrResult.validation.isValid || ocrResult.validation.warnings.length > 0 : true })
       setStatus("result")
     } catch (error: unknown) {
       setErrorMessage((error as Error).message || "Failed to process image. Make sure the OCR backend is running.")
@@ -60,7 +62,7 @@ export function LiveDemo() {
     }
   }
 
-  const isApproved = result && !result.expired && !result.tampered && !result.needs_review
+  const isApproved = result && Boolean(result.medicine_name && result.expiry) && !result.expired && !result.tampered && !result.needs_review
 
   return (
     <div className="w-full max-w-5xl mx-auto border border-[#DDD8CF] rounded-lg overflow-hidden bg-white">
@@ -118,7 +120,7 @@ export function LiveDemo() {
                   {isApproved ? (
                     <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg border border-green-500/40">
                       <ShieldCheck className="w-16 h-16 text-green-600" />
-                      <span className="font-headline-sm text-green-700 font-bold">Verified Authentic</span>
+                      <span className="font-headline-sm text-green-700 font-bold">Extraction Complete</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-lg border border-red-500/40">
@@ -170,7 +172,7 @@ export function LiveDemo() {
               value={
                 status === "idle" || status === "scanning" ? "---" :
                 status === "error" ? "---" :
-                result?.expiry ? `${result.expiry} ${result.expired ? "(Expired)" : "(Valid)"}` : "Not Found"
+                result?.expiry ? `${result.expiry}${result.expired ? " (Flagged expired)" : ""}` : "Not Found"
               }
               valueColor={
                 status === "idle" || status === "scanning" || status === "error" ? "text-on-surface" :
@@ -180,10 +182,10 @@ export function LiveDemo() {
               loading={status === "scanning"}
             />
             <ResultItem 
-              label="Authenticity Confidence"
+              label="Extraction Confidence"
               value={
                 status === "idle" || status === "scanning" || status === "error" ? "---" :
-                result?.confidence ? `${(result.confidence * 100).toFixed(1)}%` : "N/A"
+                typeof result?.confidence === "number" ? `${(result.confidence <= 1 ? result.confidence * 100 : result.confidence).toFixed(1)}%` : "Unavailable"
               }
               Icon={ActivityIcon}
               loading={status === "scanning"}
@@ -191,7 +193,7 @@ export function LiveDemo() {
           </div>
 
           <div className="mt-8 pt-6 border-t border-outline-variant/20">
-            <h4 className="font-label-sm text-on-surface-variant uppercase tracking-wider mb-4">Final Eligibility</h4>
+            <h4 className="font-label-sm text-on-surface-variant uppercase tracking-wider mb-4">Extraction assessment (not final eligibility)</h4>
             {status === "idle" || status === "scanning" ? (
               <div className="h-16 bg-surface-container-low rounded-xl flex items-center justify-center border border-dashed border-outline-variant/40">
                 <span className="font-label-md text-on-surface-variant">
@@ -206,20 +208,20 @@ export function LiveDemo() {
               <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 flex items-start gap-4">
                 <CheckCircle2 className="w-6 h-6 text-green-600 mt-0.5 shrink-0" />
                 <div>
-                  <h5 className="font-label-lg text-green-800 mb-1">Approved for Donation</h5>
-                  <p className="font-body-sm text-green-700/80">This unit meets all safety requirements and is ready for the redistribution network.</p>
+                  <h5 className="font-label-lg text-green-800 mb-1">Ready for Human Review</h5>
+                  <p className="font-body-sm text-green-700/80">Label details extracted. A qualified reviewer must assess eligibility and packaging before redistribution.</p>
                 </div>
               </div>
             ) : (
               <div className="bg-error/10 border border-error/20 rounded-xl p-4 flex items-start gap-4">
                 <AlertCircle className="w-6 h-6 text-error mt-0.5 shrink-0" />
                 <div>
-                  <h5 className="font-label-lg text-error mb-1">Rejected</h5>
+                  <h5 className="font-label-lg text-error mb-1">Review Required</h5>
                   <p className="font-body-sm text-error/80">
                     {result?.tampered ? "Potential tampering detected. " : ""}
                     {result?.expired ? "Item is expired. " : ""}
                     {result?.needs_review ? "Manual review required. " : ""}
-                    Must be routed to secure disposal.
+                    Do not redistribute based on this scan alone.
                   </p>
                 </div>
               </div>

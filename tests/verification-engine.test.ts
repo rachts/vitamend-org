@@ -1,176 +1,55 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { runVerificationPipeline } from '../lib/ai-verification-engine';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock models and notifications
-vi.mock('@/models/Medicine', () => ({
-  Medicine: {
-    findById: vi.fn(),
-    find: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue([]) }),
-    countDocuments: vi.fn(),
-    findByIdAndUpdate: vi.fn(),
-  },
-  MedicineStatus: ['pending', 'approved', 'rejected', 'under_review', 'distributed', 'expired']
-}));
-
-vi.mock('@/models/VerificationLog', () => ({
-  VerificationLog: {
-    create: vi.fn(),
-  }
-}));
-
-vi.mock('@/models/Inventory', () => ({
-  Inventory: {
-    findOne: vi.fn(),
-    create: vi.fn(),
-  }
-}));
-
-vi.mock('../lib/notifications', () => ({
-  notifyReviewers: vi.fn(),
-}));
-
-const { mockGenerateContent } = vi.hoisted(() => ({
-  mockGenerateContent: vi.fn(),
-}));
-
-// Mock Gemini
-vi.mock('@google/generative-ai', () => {
-  return {
-    GoogleGenerativeAI: vi.fn().mockImplementation(() => {
-      return {
-        getGenerativeModel: vi.fn().mockReturnValue({
-          generateContent: mockGenerateContent,
-        }),
-      };
-    }),
-  };
+const { generate, find, update, record } = vi.hoisted(() => {
+  process.env.GEMINI_API_KEY = "test-key";
+  return { generate: vi.fn(), find: vi.fn(), update: vi.fn(), record: vi.fn() };
 });
+vi.mock("@google/generative-ai", () => ({ GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
+  getGenerativeModel: () => ({ generateContent: generate }),
+})) }));
+vi.mock("@/models/Medicine", () => ({ Medicine: {
+  findById: () => ({ select: find }),
+  find: () => ({ select: () => ({ limit: () => ({ lean: async () => [] }) }) }),
+  updateOne: update,
+} }));
+vi.mock("@/models/VerificationLog", () => ({ VerificationLog: { create: record } }));
+vi.mock("../lib/notifications", () => ({ notifyReviewers: vi.fn() }));
+import { runVerificationPipeline } from "../lib/ai-verification-engine";
 
-describe('runVerificationPipeline', () => {
+const evidence = [{ data: "/9j/AA==", mimeType: "image/jpeg" }];
+const response = (value: unknown) => ({ response: { text: () => JSON.stringify(value) } });
+
+describe("donation analysis requires human review", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGenerateContent.mockReset();
+    find.mockResolvedValue({ _id: "123", name: "Donor name", status: "under_review", packagingEvidence: evidence });
   });
 
-  it('should handle a successful verification where the medicine is approved', async () => {
-    // We mock the DB fetching
-    const { Medicine } = await import('@/models/Medicine');
-    const mockSave = vi.fn();
-    const mockMedicine = {
-      _id: '123',
-      name: 'Amoxicillin',
-      save: mockSave,
-    };
-    (Medicine.findById as any).mockResolvedValue(mockMedicine);
-    (Medicine.find as any).mockReturnValue({ lean: vi.fn().mockResolvedValue([]) });
-    (Medicine.countDocuments as any).mockResolvedValue(0);
-
-    // Mock Gemini Responses
-    mockGenerateContent
-      .mockResolvedValueOnce({
-        response: {
-          text: () => JSON.stringify({
-            name: "Amoxicillin",
-            manufacturer: "Sun Pharma",
-            expiryDate: "2030-01-01",
-            confidence: 95
-          })
-        }
-      })
-      .mockResolvedValueOnce({
-        response: {
-          text: () => JSON.stringify({
-            isTampered: false,
-            tamperConfidence: 99,
-            isRecalled: false,
-            recallReason: null,
-            aiReasoning: "Looks safe."
-          })
-        }
-      });
-
-    const result = await runVerificationPipeline('123', [{ data: 'base64', mimeType: 'image/jpeg' }]);
-    
+  it.each(["2030-01-01", "2020-01-01", undefined])("never approves or rejects even with expiry %s", async (expiryDate) => {
+    generate.mockResolvedValueOnce(response({ name: "OCR name", expiryDate, confidence: 99 }))
+      .mockResolvedValueOnce(response({ isTampered: false, tamperConfidence: 99, isRecalled: false, recallReason: null, aiReasoning: "Photo only" }));
+    const result = await runVerificationPipeline("123");
     expect(result.success).toBe(true);
-    expect(result.decision).toBe('approved');
-    expect(mockSave).toHaveBeenCalled();
+    expect(result.decision).toBe("under_review");
+    const changes = update.mock.calls[0][1].$set;
+    expect(changes.status).toBe("under_review");
+    expect(changes.name).toBeUndefined();
+    expect(changes.expiryDate).toBeUndefined();
+    expect(changes.verificationResult.aiReasoning).toContain("Pharmacist inspection required");
+    expect(changes.verificationResult.isExpired).toBe(expiryDate ? expiryDate === "2020-01-01" : undefined);
+    expect(generate.mock.calls[0][0][1].inlineData).toEqual(evidence[0]);
   });
 
-  it('should reject if medicine is expired', async () => {
-    const { Medicine } = await import('@/models/Medicine');
-    const mockSave = vi.fn();
-    (Medicine.findById as any).mockResolvedValue({
-      _id: '123',
-      name: 'Amoxicillin',
-      save: mockSave,
-    });
-    (Medicine.find as any).mockReturnValue({ lean: vi.fn().mockResolvedValue([]) });
-    (Medicine.countDocuments as any).mockResolvedValue(0);
-
-    mockGenerateContent
-      .mockResolvedValueOnce({
-        response: {
-          text: () => JSON.stringify({
-            name: "Amoxicillin",
-            expiryDate: "2020-01-01", // EXPIRED!
-            confidence: 90
-          })
-        }
-      })
-      .mockResolvedValueOnce({
-        response: {
-          text: () => JSON.stringify({
-            isTampered: false,
-            tamperConfidence: 99,
-            isRecalled: false,
-            recallReason: null,
-            aiReasoning: "Safe from tampering."
-          })
-        }
-      });
-
-    const result = await runVerificationPipeline('123', [{ data: 'base64', mimeType: 'image/jpeg' }]);
-    
-    expect(result.success).toBe(true);
-    expect(result.decision).toBe('rejected');
+  it("does not overwrite a human-reviewed record", async () => {
+    find.mockResolvedValue({ status: "approved", packagingEvidence: evidence });
+    expect((await runVerificationPipeline("123")).success).toBe(false);
+    expect(generate).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
   });
 
-  it('should mark for under_review if confidence is low', async () => {
-    const { Medicine } = await import('@/models/Medicine');
-    const mockSave = vi.fn();
-    (Medicine.findById as any).mockResolvedValue({
-      _id: '123',
-      name: 'Amoxicillin',
-      save: mockSave,
-    });
-    (Medicine.find as any).mockReturnValue({ lean: vi.fn().mockResolvedValue([]) });
-    (Medicine.countDocuments as any).mockResolvedValue(0);
-
-    mockGenerateContent
-      .mockResolvedValueOnce({
-        response: {
-          text: () => JSON.stringify({
-            name: "Amoxicillin",
-            expiryDate: "2030-01-01",
-            confidence: 60 // LOW CONFIDENCE!
-          })
-        }
-      })
-      .mockResolvedValueOnce({
-        response: {
-          text: () => JSON.stringify({
-            isTampered: false,
-            tamperConfidence: 99,
-            isRecalled: false,
-            recallReason: null,
-            aiReasoning: "Safe from tampering."
-          })
-        }
-      });
-
-    const result = await runVerificationPipeline('123', [{ data: 'base64', mimeType: 'image/jpeg' }]);
-    
-    expect(result.success).toBe(true);
-    expect(result.decision).toBe('under_review');
+  it("limits failure updates to still-unreviewed records", async () => {
+    generate.mockRejectedValueOnce(new Error("Unavailable"));
+    expect((await runVerificationPipeline("123")).success).toBe(false);
+    expect(update).toHaveBeenCalledWith({ _id: "123", status: { $in: ["pending", "under_review"] } }, { $set: { status: "under_review" } });
   });
 });

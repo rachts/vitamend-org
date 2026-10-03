@@ -33,6 +33,11 @@ function ResetPasswordForm() {
       return
     }
 
+    if (password.length < 8 || password.length > 128) {
+      toast({ title: "Invalid Password", description: "Password must be between 8 and 128 characters long.", variant: "destructive" })
+      return
+    }
+
     if (!token) {
       toast({
         title: "Invalid Token",
@@ -105,6 +110,9 @@ function ResetPasswordForm() {
           <div className="relative">
             <input
               id="password"
+              minLength={8}
+              maxLength={128}
+              autoComplete="new-password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -130,6 +138,9 @@ function ResetPasswordForm() {
           <div className="relative">
             <input
               id="confirmPassword"
+              minLength={8}
+              maxLength={128}
+              autoComplete="new-password"
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

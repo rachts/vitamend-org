@@ -10,6 +10,7 @@ export default function DonationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isProcessingOCR, setIsProcessingOCR] = useState(false)
   const [images, setImages] = useState<File[]>([])
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
   
   const [submittedDonationId, setSubmittedDonationId] = useState<string | null>(null)
   const [verificationStatus, setVerificationStatus] = useState<string>("")
@@ -39,6 +40,12 @@ export default function DonationForm() {
   }
 
   useEffect(() => {
+    const urls = images.map((image) => URL.createObjectURL(image))
+    setPreviewUrls(urls)
+    return () => urls.forEach((url) => URL.revokeObjectURL(url))
+  }, [images])
+
+  useEffect(() => {
     const savedScan = window.localStorage.getItem("vitamend:ocr-draft")
     if (savedScan) {
       try {
@@ -60,30 +67,42 @@ export default function DonationForm() {
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
-    if (submittedDonationId && verificationStatus === "pending") {
+    const controller = new AbortController();
+    let inFlight = false;
+    if (submittedDonationId && ["pending", "under_review"].includes(verificationStatus)) {
       interval = setInterval(async () => {
+        if (inFlight) return;
+        inFlight = true;
         try {
-          const res = await fetch(`/api/donations/${submittedDonationId}`);
+          const res = await fetch(`/api/donations/${submittedDonationId}`, { signal: controller.signal });
+          if (!res.ok) return;
           const data = await res.json();
-          if (data.success) {
+          if (data.success && !controller.signal.aborted) {
             setVerificationStatus(data.status);
-            if (data.status !== "pending") {
-              setVerificationResult(data.result);
+            setVerificationResult(data.result);
+            if (!["pending", "under_review"].includes(data.status)) {
               clearInterval(interval);
             }
           }
         } catch (e) {
-          console.error(e);
+          if (!controller.signal.aborted) console.error(e);
+        } finally {
+          inFlight = false;
         }
       }, 3000);
     }
     return () => {
+      controller.abort();
       if (interval) clearInterval(interval);
     }
   }, [submittedDonationId, verificationStatus]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
+    if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 512 * 1024)) {
+      toast({ title: "Invalid photo", description: "Use JPEG, PNG or WebP photos up to 512 KB each.", variant: "destructive" })
+      return
+    }
     if (files.length + images.length > 5) {
       toast({
         title: "Upload Limit Exceeded",
@@ -104,6 +123,10 @@ export default function DonationForm() {
     e.preventDefault()
     e.stopPropagation()
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+    if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 512 * 1024)) {
+      toast({ title: "Invalid photo", description: "Use JPEG, PNG or WebP photos up to 512 KB each.", variant: "destructive" })
+      return
+    }
     
     if (files.length + images.length > 5) {
       toast({
@@ -133,7 +156,7 @@ export default function DonationForm() {
     try {
       toast({
         title: "Photo Attached",
-        description: "Medicine details will be verified by our AI after submission.",
+        description: "Packaging evidence will be saved for AI-assisted and pharmacist review.",
       })
     } catch (error: unknown) {
       toast({
@@ -156,9 +179,11 @@ export default function DonationForm() {
     setIsSubmitting(true)
 
     try {
-      const toBase64 = (file: File) => new Promise<string>((resolve) => {
+      const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Could not read packaging photo"));
+        reader.onabort = () => reject(new Error("Packaging photo read cancelled"));
         reader.readAsDataURL(file);
       });
 
@@ -175,17 +200,17 @@ export default function DonationForm() {
           ...formData,
           images: [],
           base64Images,
-          quantity: Number.parseInt(formData.quantity) || 1,
+          quantity: Number(formData.quantity),
         }),
       }).then(res => res.json())
 
-      if (result.medicineId && !result.error) {
+      if (result.success && typeof result.donationId === "string" && !result.error) {
         toast({
           title: "Donation Submitted",
-          description: "Your donation is now being processed by our AI...",
+          description: "Your donation has been saved and requires pharmacist review.",
         })
-        setSubmittedDonationId(result.medicineId || result.id || "dummy")
-        setVerificationStatus("pending")
+        setSubmittedDonationId(result.donationId)
+        setVerificationStatus(result.status || "under_review")
       } else {
         throw new Error(result.error || "Failed to submit donation")
       }
@@ -225,7 +250,7 @@ export default function DonationForm() {
               <div className={`p-4 rounded-full ${verificationStatus === 'approved' ? 'bg-green-100 text-green-700' : verificationStatus === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
                 <ShieldCheck className="w-12 h-12" />
               </div>
-              <h2 className="text-2xl font-serif text-[var(--text-primary)]">Verification Complete</h2>
+              <h2 className="text-2xl font-serif text-[var(--text-primary)]">{verificationStatus === "under_review" ? "Awaiting Pharmacist Review" : "Review Complete"}</h2>
               <p className="font-sans text-[var(--text-secondary)]">Status: <span className="font-bold capitalize">{verificationStatus.replace('_', ' ')}</span></p>
               {verificationResult?.aiReasoning && (
                 <div className="bg-blue-50 p-4 rounded text-left mt-4 border border-blue-100 max-w-2xl w-full">
@@ -285,7 +310,7 @@ export default function DonationForm() {
             )}
             <input 
               ref={fileInputRef}
-              accept="image/*" 
+              accept="image/jpeg,image/png,image/webp"
               className="hidden" 
               multiple 
               type="file" 
@@ -297,11 +322,13 @@ export default function DonationForm() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
               {images.map((img, idx) => (
                 <div key={idx} className="relative aspect-square border border-stone">
+                  {previewUrls[idx] && (
                   <Image width={500} height={500} unoptimized 
                     className="w-full h-full object-cover" 
-                    src={URL.createObjectURL(img)}
+                    src={previewUrls[idx]}
                     alt="Packaging"
                   />
+                  )}
                   <button 
                     type="button" 
                     onClick={(e) => { e.stopPropagation(); removeImage(idx); }}

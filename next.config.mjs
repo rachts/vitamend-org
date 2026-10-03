@@ -6,7 +6,7 @@ const nextConfig = {
   // mounts twice in dev and it was messing up the camera stream
   reactStrictMode: true,
   
-  webpack: (config, { isServer, nextRuntime }) => {
+  webpack: (config, { isServer: _isServer, nextRuntime: _nextRuntime }) => {
     // Silence jose Edge Runtime warnings — these APIs aren't actually used at build time
     config.ignoreWarnings = [
       {
@@ -115,8 +115,10 @@ const nextConfig = {
   },
 }
 
-export default (phase) => ({
+const phaseConfig = (phase) => ({
   ...nextConfig,
   // Keep the dev server's chunks separate from production builds and Docker output.
   distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
 })
+
+export default phaseConfig

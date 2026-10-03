@@ -4,6 +4,8 @@ import connectMongoose from "@/lib/db";
 import { User } from "@/models/User";
 import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
+import { normalizeEmail } from "@/lib/auth-policy";
+import { z } from "zod";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -11,19 +13,17 @@ export async function POST(req: NextRequest) {
   try {
     const limit = await rateLimit(req, 5, 1);
     if (!limit.allowed) return NextResponse.json({ success: false, message: "Too many requests" }, { status: 429 });
-    await connectMongoose();
-    const { email } = await req.json();
-
-    if (!email || typeof email !== "string") {
+    const payload = z.object({ email: z.string().trim().email().max(254) }).safeParse(await req.json());
+    if (!payload.success) {
       return NextResponse.json(
         { success: false, message: "Email is required" },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (User as any).findOne({ email: normalizedEmail });
+    await connectMongoose();
+    const normalizedEmail = normalizeEmail(payload.data.email);
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (user) {
       const resetToken = crypto.randomBytes(32).toString("hex");
@@ -62,17 +62,16 @@ export async function POST(req: NextRequest) {
         } catch (emailErr) {
           console.error("Failed to dispatch reset email via Resend:", emailErr);
         }
-      } else {
-        console.log(`[DEV] Password reset link for ${normalizedEmail}: ${resetLink}`);
       }
     }
 
     // Always return generic success to prevent email enumeration
     return NextResponse.json({
       success: true,
-      message: "If an account exists with that email address, a password reset link has been dispatched.",
+      message: "If an account exists with that email address and email delivery is available, you will receive a password reset link.",
     });
   } catch (error: unknown) {
+    if (error instanceof SyntaxError) return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
     console.error("Forgot password error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },

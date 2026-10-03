@@ -2,205 +2,127 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import connectMongoose from "@/lib/db";
 import mongoose from "mongoose";
-import { Distribution } from "@/models/Distribution";
+import { Distribution, DistributionRecipient, DistributionStatus } from "@/models/Distribution";
 import { Inventory } from "@/models/Inventory";
 import { Medicine } from "@/models/Medicine";
 import { sendNotification } from "@/lib/notifications";
+import { rateLimit } from "@/lib/rate-limit";
+import { StockError, assertDistributionTransition } from "@/lib/stock-lifecycle";
+
+function failure(error: unknown) {
+  if (error instanceof StockError) return NextResponse.json({ error: error.message }, { status: error.status });
+  console.error("Distribution request failed:", error);
+  return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+}
 
 export async function GET(req: Request) {
   try {
+    if (!(await rateLimit(req, 100)).success) throw new StockError("Too many requests", 429);
     const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    if (!["admin", "volunteer"].includes(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
+    if (!session?.user?.id) throw new StockError("Unauthorized", 401);
+    if (session.user.role !== "admin") throw new StockError("Forbidden", 403);
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
-    const page = Math.max(1, Math.min(100000, Number.parseInt(searchParams.get("page") || "1", 10) || 1));
-    const limit = Math.max(1, Math.min(100, Number.parseInt(searchParams.get("limit") || "10", 10) || 10));
-
+    if (status && !DistributionStatus.includes(status as typeof DistributionStatus[number])) throw new StockError("Invalid status");
+    const page = Math.max(1, Math.min(100000, parseInt(searchParams.get("page") || "1", 10) || 1));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") || "10", 10) || 10));
     await connectMongoose();
-
-    const query: Record<string, unknown> = {};
-    if (status) query.status = status;
-
-    const skip = (page - 1) * limit;
-
+    const query = status ? { status } : {};
     const [distributions, total] = await Promise.all([
-      Distribution.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Distribution.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
       Distribution.countDocuments(query),
     ]);
-
-    return NextResponse.json({
-      distributions,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error: unknown) {
-    console.error("GET /api/distribution error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+    return NextResponse.json({ distributions, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } });
+  } catch (error) { return failure(error); }
 }
 
 export async function POST(req: Request) {
   try {
-    const sessionAuth = await auth();
-    if (!sessionAuth?.user?.id || !["admin", "volunteer"].includes(sessionAuth.user.role)) {
-      return NextResponse.json({ error: "Forbidden: Admins or Volunteers only" }, { status: 403 });
-    }
-
-    const body = await req.json();
+    if (!(await rateLimit(req, 30)).success) throw new StockError("Too many requests", 429);
+    const session = await auth();
+    if (!session?.user?.id) throw new StockError("Unauthorized", 401);
+    if (session.user.role !== "admin") throw new StockError("Forbidden", 403);
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new StockError("Invalid payload");
     const { inventoryId, recipientType, recipientId, recipientName, quantity, notes } = body;
-
-    if (!inventoryId || !recipientType || typeof recipientName !== "string" || recipientName.length > 200 || !Number.isInteger(quantity) || quantity < 1 || quantity > 100000) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
+    if (typeof inventoryId !== "string" || !mongoose.isObjectIdOrHexString(inventoryId) || !DistributionRecipient.includes(recipientType) || typeof recipientName !== "string" || !recipientName.trim() || recipientName.length > 200 || !Number.isInteger(quantity) || quantity < 1 || quantity > 100000 || (recipientId !== undefined && (typeof recipientId !== "string" || recipientId.length > 200)) || (notes !== undefined && (typeof notes !== "string" || notes.length > 2000))) throw new StockError("Invalid payload");
     await connectMongoose();
-
     const dbSession = await mongoose.startSession();
-    dbSession.startTransaction();
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let notificationData: any = null;
-    let createdDistribution: unknown = null;
-
+    let createdDistribution: unknown;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const inventory = await (Inventory as any).findById(inventoryId).session(dbSession);
-      if (!inventory) {
-        await dbSession.abortTransaction();
-        dbSession.endSession();
-        return NextResponse.json({ error: "Inventory item not found" }, { status: 404 });
-      }
-
-      if (inventory.status !== "available" && inventory.status !== "reserved") {
-        await dbSession.abortTransaction();
-        dbSession.endSession();
-        return NextResponse.json({ error: "Inventory item is not available" }, { status: 400 });
-      }
-
-      if (inventory.quantity < quantity) {
-        await dbSession.abortTransaction();
-        dbSession.endSession();
-        return NextResponse.json({ error: "Insufficient inventory quantity" }, { status: 400 });
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const distribution = await (Distribution as any).create(
-        [
-          {
-            inventoryId,
-            recipientType,
-            recipientId,
-            recipientName,
-            quantity,
-            status: "pending",
-            distributedBy: sessionAuth.user.id,
-            notes,
-          },
-        ],
-        { session: dbSession }
-      );
-      createdDistribution = distribution[0];
-
-      inventory.quantity -= quantity;
-      if (inventory.quantity <= 0) {
-        inventory.status = "distributed";
-      } else {
-        inventory.status = "reserved";
-      }
-      await inventory.save({ session: dbSession });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const medicine = await (Medicine as any).findById(inventory.medicineId).session(dbSession);
-      if (medicine) {
-        medicine.status = "distributed";
-        await medicine.save({ session: dbSession });
-
-        notificationData = {
-          userId: medicine.donorId,
-          type: "distribution_update" as const,
-          title: "Your Donation was Distributed!",
-          message: `Good news! ${quantity} units of your donated ${medicine.name} have been allocated to ${recipientName}.`,
-        };
-      }
-
-      await dbSession.commitTransaction();
-      dbSession.endSession();
-
-      // Send notification AFTER transaction completes safely
-      if (notificationData) {
-        sendNotification(notificationData).catch((err) =>
-          console.error("Notification failed:", err)
+      await dbSession.withTransaction(async () => {
+        // Conditional decrement plus transaction prevents concurrent overselling.
+        const inventory = await Inventory.findOneAndUpdate(
+          { _id: inventoryId, status: { $in: ["available", "reserved"] }, quantity: { $gte: quantity }, expiryDate: { $gt: new Date() } },
+          { $inc: { quantity: -quantity } },
+          { new: true, session: dbSession }
         );
-      }
-
-      return NextResponse.json({ success: true, distribution: createdDistribution }, { status: 201 });
-    } catch (txnError) {
-      await dbSession.abortTransaction();
-      dbSession.endSession();
-      throw txnError;
-    }
-  } catch (error: unknown) {
-    console.error("POST /api/distribution error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+        if (!inventory) throw new StockError("Inventory unavailable, expired, or insufficient", 409);
+        inventory.status = inventory.quantity === 0 ? "reserved" : "available";
+        await inventory.save({ session: dbSession });
+        const [distribution] = await Distribution.create([{ inventoryId, recipientType, recipientId, recipientName: recipientName.trim(), quantity, status: "pending", distributedBy: session.user.id, notes }], { session: dbSession });
+        createdDistribution = distribution;
+        // Allocation is not delivery. The donation remains approved until all units are delivered.
+      });
+    } finally { await dbSession.endSession(); }
+    return NextResponse.json({ success: true, distribution: createdDistribution }, { status: 201 });
+  } catch (error) { return failure(error); }
 }
 
 export async function PATCH(req: Request) {
   try {
+    if (!(await rateLimit(req, 30)).success) throw new StockError("Too many requests", 429);
     const session = await auth();
-    if (!session?.user?.id || !["admin", "volunteer"].includes(session.user.role)) {
-      return NextResponse.json({ error: "Forbidden: Admins or Volunteers only" }, { status: 403 });
-    }
-
-    const body = await req.json();
+    if (!session?.user?.id) throw new StockError("Unauthorized", 401);
+    if (session.user.role !== "admin") throw new StockError("Forbidden", 403);
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new StockError("Invalid payload");
     const { distributionId, status, deliveryProof } = body;
-
-    if (!distributionId || !["pending", "in_transit", "delivered", "cancelled"].includes(status) || (deliveryProof !== undefined && (typeof deliveryProof !== "string" || deliveryProof.length > 2000))) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
+    if (typeof distributionId !== "string" || !mongoose.isObjectIdOrHexString(distributionId) || !DistributionStatus.includes(status) || (deliveryProof !== undefined && (typeof deliveryProof !== "string" || deliveryProof.length > 2000))) throw new StockError("Invalid payload");
     await connectMongoose();
-
     const dbSession = await mongoose.startSession();
-    dbSession.startTransaction();
-
+    let updatedDistribution: unknown;
+    let notification: Parameters<typeof sendNotification>[0] | undefined;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const distribution = await (Distribution as any).findById(distributionId).session(dbSession);
-      if (!distribution) {
-        await dbSession.abortTransaction();
-        dbSession.endSession();
-        return NextResponse.json({ error: "Distribution record not found" }, { status: 404 });
-      }
-
-      distribution.status = status;
-      if (status === "delivered") {
-        distribution.distributedAt = new Date();
-      }
-      if (deliveryProof) {
-        distribution.deliveryProof = deliveryProof;
-      }
-      await distribution.save({ session: dbSession });
-
-      await dbSession.commitTransaction();
-      dbSession.endSession();
-
-      return NextResponse.json({ success: true, distribution });
-    } catch (err) {
-      await dbSession.abortTransaction();
-      dbSession.endSession();
-      throw err;
+      await dbSession.withTransaction(async () => {
+        notification = undefined;
+        const distribution = await Distribution.findById(distributionId).session(dbSession);
+        if (!distribution) throw new StockError("Distribution record not found", 404);
+        assertDistributionTransition(distribution.status, status);
+        distribution.status = status;
+        if (status === "delivered") distribution.distributedAt = new Date();
+        if (deliveryProof !== undefined) distribution.deliveryProof = deliveryProof;
+        // Writing this document serializes competing cancellations; a retry sees cancelled and refuses.
+        await distribution.save({ session: dbSession });
+        const inventory = await Inventory.findById(distribution.inventoryId).session(dbSession);
+        if (!inventory) throw new StockError("Inventory record not found", 409);
+        if (status === "cancelled") {
+          inventory.quantity += distribution.quantity;
+          inventory.status = inventory.expiryDate.getTime() <= Date.now() ? "expired" : "available";
+        }
+        // Every transition touches the shared stock row, preventing write skew between deliveries.
+        inventory.markModified("status");
+        await inventory.save({ session: dbSession });
+        const outstanding = await Distribution.exists({ inventoryId: distribution.inventoryId, status: { $in: ["pending", "in_transit"] } }).session(dbSession);
+        const fullyDelivered = inventory.quantity === 0 && !outstanding;
+        if (status === "delivered" && fullyDelivered) {
+          inventory.status = "distributed";
+          await inventory.save({ session: dbSession });
+        }
+        if (mongoose.isObjectIdOrHexString(inventory.medicineId)) {
+          const medicine = await Medicine.findById(inventory.medicineId).session(dbSession);
+          if (medicine && ["approved", "distributed"].includes(medicine.status)) {
+            medicine.status = fullyDelivered ? "distributed" : "approved";
+            await medicine.save({ session: dbSession });
+            if (status === "delivered") notification = { userId: medicine.donorId, type: "distribution_update", title: "Donation Delivery Confirmed", message: `${distribution.quantity} units of your donated ${medicine.name} were delivered to ${distribution.recipientName}.` };
+          }
+        }
+        updatedDistribution = distribution;
+      });
+    } finally { await dbSession.endSession(); }
+    if (notification) {
+      try { await sendNotification(notification); } catch (error) { console.error("Delivery notification failed:", error); }
     }
-  } catch (error: unknown) {
-    console.error("PATCH /api/distribution error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+    return NextResponse.json({ success: true, distribution: updatedDistribution });
+  } catch (error) { return failure(error); }
 }

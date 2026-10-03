@@ -32,7 +32,7 @@ VitaMend closes this gap through a four-stage pipeline:
 
 | Stage | What happens |
 |---|---|
-| **AI OCR Verification** | Gemini 1.5 Flash Vision scans medicine labels — extracting name, batch, expiry, and manufacturer with confidence scoring |
+| **AI OCR Verification** | Configured Gemini Vision model scans medicine labels — extracting visible name, composition, batch, expiry, and manufacturer with confidence scoring |
 | **Pharmacist Review** | Every AI extraction requires secondary sign-off from a CDSCO-licensed pharmacist |
 | **Automated Routing** | Verified surplus is matched to clinics reporting shortages via priority queue |
 | **Chain-of-Custody Ledger** | Cryptographic tracking from donor intake to clinic dispatch |
@@ -182,7 +182,7 @@ ALLOWED_ORIGINS=https://vitamend.in
 
 ## Roadmap
 
-- [x] AI OCR medicine label scanning (Gemini 1.5 Flash Vision)
+- [x] AI OCR medicine label scanning (configured Gemini Vision model)
 - [x] Licensed pharmacist review workflow
 - [x] Role-based access control (donor, volunteer, admin)
 - [x] Rate limiting & Zod input validation

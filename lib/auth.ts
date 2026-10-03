@@ -2,22 +2,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import connectMongoose from "@/lib/db";
 import { User } from "@/models/User";
-
-function normalizeUserRole(role: string): string {
-  const roleMap: Record<string, string> = {
-    "Donate Medicines": "donor",
-    donor: "donor",
-    "Receive Medicines": "recipient",
-    recipient: "recipient",
-    Volunteer: "volunteer",
-    volunteer: "volunteer",
-    admin: "admin",
-  };
-  return roleMap[role] ?? "donor";
-}
+import { authConfig } from "@/auth.config";
+import { normalizeEmail, normalizeUserRole } from "@/lib/auth-policy";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
+  ...authConfig,
   providers: [
     Credentials({
       name: "credentials",
@@ -25,12 +15,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+      async authorize(credentials, request) {
+        if (typeof credentials?.email !== "string" || typeof credentials?.password !== "string") return null;
+        const email = normalizeEmail(credentials.email);
+        if (!email || email.length > 254 || !credentials.password || credentials.password.length > 128) return null;
+        if (!(await checkRateLimit(request, 5)).allowed) return null;
         await connectMongoose();
-        const user = await User.findOne({ email: credentials.email }).select("+password");
+        const user = await User.findOne({ email }).select("+password");
         if (!user) return null;
-        const isValid = await user.matchPassword(credentials.password as string);
+        const isValid = await user.matchPassword(credentials.password);
         if (!isValid) return null;
         return {
           id: user._id.toString(),
@@ -41,25 +34,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  pages: {
-    signIn: "/auth/signin",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as { role?: string }).role ?? "donor";
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
-  },
-  session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
 });

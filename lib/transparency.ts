@@ -1,7 +1,6 @@
 import connectMongoose from "@/lib/db";
 import { Distribution } from "@/models/Distribution";
 import { Medicine } from "@/models/Medicine";
-import { User } from "@/models/User";
 import type { TransparencyMetrics, TransparencyMonth } from "@/types/transparency";
 
 const emptyMonth = (month: string): TransparencyMonth => ({ month, collected: 0, distributed: 0, pct: 0 });
@@ -11,6 +10,7 @@ export async function getTransparencyMetrics(): Promise<TransparencyMetrics> {
   const now = new Date();
   const year = now.getUTCFullYear();
   const startOfYear = new Date(Date.UTC(year, 0, 1));
+  const endOfYear = new Date(Date.UTC(year + 1, 0, 1));
 
   const [medicineTotals, distributionTotals, clinics, monthlyCollected, monthlyDistributed] = await Promise.all([
     Medicine.aggregate<{ _id: string; total: number }>([
@@ -20,13 +20,13 @@ export async function getTransparencyMetrics(): Promise<TransparencyMetrics> {
       { $match: { status: "delivered" } },
       { $group: { _id: "$status", total: { $sum: "$quantity" } } },
     ]),
-    User.countDocuments({ role: { $in: ["ngo", "recipient"] } }),
+    Distribution.distinct("recipientId", { status: "delivered", recipientType: "hospital", recipientId: { $exists: true, $nin: [null, ""] } }),
     Medicine.aggregate<{ _id: number; total: number }>([
-      { $match: { createdAt: { $gte: startOfYear } } },
+      { $match: { createdAt: { $gte: startOfYear, $lt: endOfYear } } },
       { $group: { _id: { $month: "$createdAt" }, total: { $sum: "$quantity" } } },
     ]),
     Distribution.aggregate<{ _id: number; total: number }>([
-      { $match: { status: "delivered", distributedAt: { $gte: startOfYear } } },
+      { $match: { status: "delivered", distributedAt: { $gte: startOfYear, $lt: endOfYear } } },
       { $group: { _id: { $month: "$distributedAt" }, total: { $sum: "$quantity" } } },
     ]),
   ]);
@@ -40,7 +40,7 @@ export async function getTransparencyMetrics(): Promise<TransparencyMetrics> {
       month: new Date(Date.UTC(year, index, 1)).toLocaleString("en-IN", { month: "short", year: "numeric", timeZone: "UTC" }),
       collected,
       distributed: delivered,
-      pct: collected > 0 ? Math.min(100, Math.round((delivered / collected) * 100)) : 0,
+       pct: collected > 0 ? Math.round((delivered / collected) * 100) : null,
     };
   });
 
@@ -49,10 +49,10 @@ export async function getTransparencyMetrics(): Promise<TransparencyMetrics> {
     totalVerified: (byStatus.get("approved") || 0) + (byStatus.get("distributed") || 0),
     totalRejected: (byStatus.get("rejected") || 0) + (byStatus.get("disposed") || 0),
     totalDistributed: distributed,
-    livesImpacted: 0,
-    partnerClinics: clinics,
-    volunteerHours: 0,
-    co2SavedKg: 0,
+    livesImpacted: null,
+    partnerClinics: clinics.length,
+    volunteerHours: null,
+    co2SavedKg: null,
     months: months.length ? months : [emptyMonth(`${year}`)],
     lastUpdated: now.toISOString(),
   };

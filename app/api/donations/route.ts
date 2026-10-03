@@ -4,25 +4,10 @@ import { auth } from "@/auth";
 import connectMongoose from "@/lib/db";
 import { Medicine } from "@/models/Medicine";
 import { rateLimit } from "@/lib/rate-limit";
+import { donationSchema, MAX_DONATION_BODY_BYTES, parseDonationExpiry } from "@/lib/donation-contract";
 
 export const runtime = "nodejs";
-
-const donationSchema = z.object({
-  medicineName: z.string().min(1).max(200),
-  genericName: z.string().max(200).optional(),
-  dosage: z.string().max(100).optional(),
-  batchNumber: z.string().max(50).optional(),
-  manufacturer: z.string().max(200).optional(),
-  quantity: z.coerce.number().int().min(1).max(1000).default(1),
-  expiryDate: z.string().datetime().optional(),
-  images: z.array(z.string().url()).max(5).optional(),
-  base64Images: z.array(
-    z.object({
-      data: z.string().min(1),
-      mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
-    })
-  ).max(5).optional(),
-});
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   const limit = await rateLimit(req);
@@ -32,16 +17,30 @@ export async function POST(req: NextRequest) {
 
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const rawBody = await req.json();
+    const reader = req.body?.getReader();
+    if (!reader) return NextResponse.json({ success: false, error: "Missing body" }, { status: 400 });
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_DONATION_BODY_BYTES) {
+        await reader.cancel();
+        return NextResponse.json({ success: false, error: "Payload too large" }, { status: 413 });
+      }
+      chunks.push(value);
+    }
+    const rawBody = JSON.parse(Buffer.concat(chunks).toString("utf8"));
     const body = donationSchema.parse(rawBody);
 
     await connectMongoose();
 
-    const expiryDate = body.expiryDate ? new Date(body.expiryDate) : new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+    const expiryDate = parseDonationExpiry(body.expiryDate)!;
 
     const donation = await Medicine.create({
       donorId: session.user.id,
@@ -50,6 +49,16 @@ export async function POST(req: NextRequest) {
       dosage: body.dosage,
       batchNumber: body.batchNumber,
       manufacturer: body.manufacturer,
+      brand: body.brand,
+      condition: body.condition,
+      category: body.category,
+      notes: body.notes,
+      donorName: body.donorName,
+      donorEmail: body.donorEmail,
+      donorPhone: body.donorPhone,
+      donorAddress: body.donorAddress,
+      expiryLabel: body.expiryDate,
+      packagingEvidence: body.base64Images || [],
       quantity: body.quantity,
       expiryDate,
       images: body.images || [],
@@ -58,41 +67,40 @@ export async function POST(req: NextRequest) {
 
     const donationId = donation._id.toString();
 
-    // Trigger AI verification pipeline asynchronously if images are provided
+    // Await work within the request lifetime. Evidence remains persisted if analysis fails.
     if (body.base64Images && body.base64Images.length > 0) {
       const { runVerificationPipeline } = await import("@/lib/ai-verification-engine");
-      // Don't block response, but handle failure gracefully
-      runVerificationPipeline(donationId, body.base64Images).catch(async (err) => {
-        console.error("Async verification pipeline failed:", err);
-        await Medicine.findByIdAndUpdate(donationId, { status: "under_review" });
-      });
+      try {
+        await runVerificationPipeline(donationId);
+      } catch {
+        // Never lose the receipt for a successfully persisted donation.
+        console.error("Donation analysis unavailable; human review required");
+      }
     }
 
-    return NextResponse.json({ success: true, donationId });
+    return NextResponse.json({ success: true, donationId, status: "under_review" });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: "Validation failed", details: error.errors }, { status: 400 });
     }
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    if (error instanceof SyntaxError) return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     await connectMongoose();
 
     const { searchParams } = new URL(req.url);
     const rawPage = searchParams.get("page") ?? "1";
     const rawLimit = searchParams.get("limit") ?? "20";
-    const page = Number.isNaN(Number(rawPage)) ? 1 : Math.max(1, Number(rawPage));
-    const limit = Number.isNaN(Number(rawLimit)) ? 20 : Math.min(100, Math.max(1, Number(rawLimit)));
+    const page = Number.isFinite(Number(rawPage)) ? Math.min(100000, Math.max(1, Math.floor(Number(rawPage)))) : 1;
+    const limit = Number.isFinite(Number(rawLimit)) ? Math.min(100, Math.max(1, Math.floor(Number(rawLimit)))) : 20;
 
-    let query: Record<string, unknown> = {};
-    if (session?.user?.id) {
-      query = { donorId: session.user.id };
-    }
+    const query = { donorId: session.user.id };
 
     const donations = await Medicine.find(query)
       .sort({ createdAt: -1 })

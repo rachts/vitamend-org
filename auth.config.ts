@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { normalizeUserRole, safeCallbackUrl } from "@/lib/auth-policy";
 
 export const authConfig = {
   trustHost: true,
@@ -8,18 +9,20 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        // NextAuth v5 beta requires manual token.role injection — session callback doesn't auto-populate custom fields.
-        token.role = (user as { role?: string }).role ?? "donor";
+        token.id = typeof user.id === "string" ? user.id : undefined;
+        token.role = normalizeUserRole(user.role);
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.id = typeof token.id === "string" ? token.id : "";
+        session.user.role = normalizeUserRole(token.role);
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      return new URL(safeCallbackUrl(url, baseUrl), baseUrl).toString();
     },
   },
   providers: [],
